@@ -5,23 +5,32 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
-import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
+import { BaseClientSideWebPart, WebPartContext } from '@microsoft/sp-webpart-base';
+
+import { sp } from '@pnp/sp';
+import { graph } from "@pnp/graph";
 
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SpupsProperySync from './components/SpupsProperySync';
 import { ISpupsProperySyncProps } from './components/ISpupsProperySyncProps';
 
 export interface ISpupsProperySyncWebPartProps {
-  description: string;
+  context: WebPartContext;
 }
 
-export default class SpupsProperySyncWebPart extends BaseClientSideWebPart <ISpupsProperySyncWebPartProps> {
+export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
+
+  protected async onInit() {
+    await super.onInit();
+    sp.setup(this.context);
+    graph.setup({ spfxContext: this.context });
+  }
 
   public render(): void {
     const element: React.ReactElement<ISpupsProperySyncProps> = React.createElement(
       SpupsProperySync,
       {
-        description: this.properties.description
+        context: this.context
       }
     );
 
