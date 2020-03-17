@@ -11,6 +11,7 @@ import { ISearchQuery, SearchResults, SearchQueryBuilder } from "@pnp/sp/search"
 import { graph } from "@pnp/graph";
 import "@pnp/graph/users";
 import * as moment from 'moment';
+import { IWeb } from "@pnp/sp/webs";
 
 export interface IUserInfo {
     ID: number;
@@ -46,6 +47,7 @@ export interface ISPHelper {
     getCurrentUserInfo: () => Promise<IUserInfo>;
     getPropertyMappings: () => Promise<any>;
     addFilesToFolder: (filename: string, fileContent: any) => void;
+    getFileContentAsBlob: (filepath: string) => void;
 }
 
 export default class SPHelper implements ISPHelper {
@@ -53,13 +55,16 @@ export default class SPHelper implements ISPHelper {
     private SiteURL: string = "";
     private SiteRelativeURL: string = "";
     private AdminSiteURL: string = "";
-    private SyncFilePath: string = "/Shared Documents/SyncJobTemplate/";
-    private SyncFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`
+    private SyncTemplateFilePath: string = "/Shared Documents/SyncJobTemplate/";
+    private SyncUploadFilePath: string = "/Shared Documents/SyncJobUploadedFiles/";
+    private SyncFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`;
+    private _web: IWeb = null;
 
     constructor(siteurl: string, tenantname: string, domainname: string, relativeurl: string) {
         this.SiteURL = siteurl;
         this.SiteRelativeURL = relativeurl;
         this.AdminSiteURL = `https://${tenantname}-admin.${domainname}`;
+        this._web = sp.web;
     }
 
     public demoFunction = async () => {
@@ -114,24 +119,27 @@ export default class SPHelper implements ISPHelper {
         //console.log(finalJson);
         return JSON.parse(finalJson);
     }
+    public getFileContentAsBlob = async (filepath: string) => {
+        return await this._web.getFileByServerRelativeUrl(filepath).getBlob();
+    }
     /**
      * Add a file to a folder with contents.
      * This is used for creating the template json file.
      */
     public addFilesToFolder = async (fileContent: any) => {
-        await this.checkAndCreateSyncTemplateFolder();
-        return await sp.web.getFolderByServerRelativeUrl(`${this.SiteRelativeURL}${this.SyncFilePath}`)
+        await this.checkAndCreateFolder(this.SiteRelativeURL + this.SyncTemplateFilePath);
+        return await sp.web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncTemplateFilePath)
             .files
-            .add(decodeURI(this.SiteRelativeURL+this.SyncFilePath+this.SyncFileName), fileContent, true);
+            .add(decodeURI(this.SiteRelativeURL + this.SyncTemplateFilePath + this.SyncFileName), fileContent, true);
     }
     /**
      * Check for the template folder, if not creates.
      */
-    public checkAndCreateSyncTemplateFolder = async () => {
+    public checkAndCreateFolder = async (folderPath: string) => {
         try {
-            await sp.web.getFolderByServerRelativeUrl(`${this.SiteRelativeURL}${this.SyncFilePath}`).get();
+            await sp.web.getFolderByServerRelativeUrl(folderPath).get();
         } catch (err) {
-            await sp.web.folders.add(`${this.SiteRelativeURL}${this.SyncFilePath}`);
+            await sp.web.folders.add(folderPath);
         }
     }
     /**
