@@ -13,6 +13,7 @@ import { graph } from "@pnp/graph";
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SpupsProperySync from './components/SpupsProperySync';
 import { ISpupsProperySyncProps } from './components/ISpupsProperySyncProps';
+import * as jQuery from 'jquery';
 
 export interface ISpupsProperySyncWebPartProps {
   context: WebPartContext;
@@ -24,6 +25,10 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
     await super.onInit();
     sp.setup(this.context);
     graph.setup({ spfxContext: this.context });
+
+    jQuery("#workbenchPageContent").prop("style", "max-width: none");
+    jQuery(".SPCanvas-canvas").prop("style", "max-width: none");
+    jQuery(".CanvasZone").prop("style", "max-width: none");
   }
 
   public render(): void {

@@ -3,16 +3,27 @@ import styles from './SpupsProperySync.module.scss';
 import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-import SPHelper from '../../../Common/SPHelper';
+import SPHelper, { IPropertyMappings } from '../../../Common/SPHelper';
 
 export default class SpupsProperySync extends React.Component<ISpupsProperySyncProps, {}> {
-  private helper: SPHelper = new SPHelper();
+  private helper: SPHelper = null;
   constructor(props: ISpupsProperySyncProps) {
     super(props);
+    this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
+      this.props.context.pageContext.legacyPageContext.tenantDisplayName,
+      this.props.context.pageContext.legacyPageContext.webDomain,
+      this.props.context.pageContext.web.serverRelativeUrl
+    );
   }
 
   public componentDidMount = async () => {
-    this.helper.demoFunction();
+
+  }
+
+  private generatePropertyMappingTemplate = async () => {
+    let jsonOut = await this.helper.getPropertyMappings();
+    let fileTemplate = await this.helper.addFilesToFolder(JSON.stringify(jsonOut));
+    console.log(fileTemplate.data.Name, fileTemplate.data.ServerRelativeUrl);
   }
 
   private _getPeoplePickerItems(items: any[]) {
@@ -25,6 +36,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         <div className={styles.container}>
           <div className={styles.row}>
             <div className={styles.column}>
+
               <PeoplePicker
                 context={this.props.context}
                 titleText="People Picker"
