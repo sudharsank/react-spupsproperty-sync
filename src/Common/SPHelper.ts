@@ -31,7 +31,7 @@ export default class SPHelper implements ISPHelper {
     private AdminSiteURL: string = "";
     private SyncTemplateFilePath: string = "/Shared Documents/SyncJobTemplate/";
     private SyncUploadFilePath: string = "/Shared Documents/SyncJobUploadedFiles/";
-    private SyncFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`;
+    private SyncJSONFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`;
     private SyncCSVFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.csv`;
     private _web: IWeb = null;
 
@@ -83,6 +83,22 @@ export default class SPHelper implements ISPHelper {
     public getPropertyMappingsTemplate = async (propertyMappings: IPropertyMappings[]) => {
         if (!propertyMappings) propertyMappings = await this.getPropertyMappings();
         let finalJson: string = "";
+        let propertyPair: any[] = [];
+        let sampleUser1 = new Object();
+        let sampleUser2 = new Object();
+        sampleUser1['UserID'] = "user1@tenantname.onmicrosoft.com";
+        sampleUser2['UserID'] = "user2@tenantname.onmicrosoft.com";
+        propertyMappings.map((propsMap: IPropertyMappings) => {
+            sampleUser1[propsMap.SPProperty] = "";
+            sampleUser2[propsMap.SPProperty] = "";
+        });
+        propertyPair.push(sampleUser1, sampleUser2);
+        finalJson = JSON.stringify(propertyPair);
+        return JSON.parse(finalJson);
+    }
+    public getPropertyMappingsTemplate1 = async (propertyMappings: IPropertyMappings[]) => {
+        if (!propertyMappings) propertyMappings = await this.getPropertyMappings();
+        let finalJson: string = "";
         let propertyPair: IPropertyPair[] = [];
         propertyMappings.map((propsMap: IPropertyMappings) => {
             propertyPair.push({
@@ -112,11 +128,12 @@ export default class SPHelper implements ISPHelper {
      * Add a file to a folder with contents.
      * This is used for creating the template json file.
      */
-    public addFilesToFolder = async (fileContent: any, isCSV?: boolean) => {
+    public addFilesToFolder = async (fileContent: any, isCSV: boolean) => {
+        let filename = (isCSV) ? this.SyncCSVFileName : this.SyncJSONFileName;
         await this.checkAndCreateFolder(this.SiteRelativeURL + this.SyncTemplateFilePath);
         return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncTemplateFilePath)
             .files
-            .add(decodeURI(this.SiteRelativeURL + this.SyncTemplateFilePath + (isCSV) ? this.SyncCSVFileName : this.SyncFileName), fileContent, true);
+            .add(decodeURI(this.SiteRelativeURL + this.SyncTemplateFilePath + filename), fileContent, true);
     }
     /**
      * Check for the template folder, if not creates.

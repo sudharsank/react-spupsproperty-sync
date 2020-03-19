@@ -1,4 +1,5 @@
 @import '~office-ui-fabric-react/dist/sass/References.scss';
+//@import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
 @import '../../../Common/theming';
 
 .spupsProperySync {
@@ -26,6 +27,10 @@
 }
 .propertyMappingList {
   padding: 0px; 
+}
+.generateTemplateLoader {
+  display: inline-flex;
+  margin-top: 5px;
 }
 .panelHeader {
   margin-top: -29px;
@@ -65,12 +70,17 @@
     border-radius: 5px;
     margin-bottom: 10px;
     text-align: center;
-    border-width: 1px;
-    border-style: solid;
-    border-color: $ms-themePrimary;
+    border: 1px solid;
+    border-color: $ms-themeTertiary;
   }
   .separator {
     display: inline-block;
     width: 25%;
+    i {
+      margin-top: 5px;
+    }
+  }
+  .separator::before {
+    background-color: $ms-themeLighter;
   }
 }  

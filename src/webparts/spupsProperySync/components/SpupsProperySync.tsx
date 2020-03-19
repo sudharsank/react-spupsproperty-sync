@@ -30,7 +30,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
   }
 
   public componentDidMount = async () => {
-    let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();    
+    let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
     this.setState({ propertyMappings });
   }
 
@@ -48,6 +48,14 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     console.log('Items:', items);
   }
 
+  private _onSaveTemplate = (uploadedTemplate: IFilePickerResult) => {
+    this.setState({ uploadedTemplate });
+  }
+
+  private _onChangeTemplate = (uploadedTemplate: IFilePickerResult) => {
+    this.setState({ uploadedTemplate });
+  }
+
   public render(): React.ReactElement<ISpupsProperySyncProps> {
     const { propertyMappings } = this.state;
     return (
@@ -55,13 +63,12 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         <div className={styles.container}>
           <div className={styles.row}>
             <div className={styles.column}>
-              <PropertyMappingList mappingProperties={propertyMappings} helper={this.helper} />              
+              <PropertyMappingList mappingProperties={propertyMappings} helper={this.helper} />
               <FilePicker
-                bingAPIKey="<BING API KEY>"
-                accepts={[".json"]}
+                accepts={[".json", ".csv"]}
                 buttonIcon="FileImage"
-                onSave={(uploadedTemplate: IFilePickerResult) => { this.setState({ uploadedTemplate }) }}
-                onChanged={(uploadedTemplate: IFilePickerResult) => { this.setState({ uploadedTemplate }) }}
+                onSave={this._onSaveTemplate}
+                onChanged={this._onChangeTemplate}
                 context={this.props.context}
               />
               {this.state.uploadedTemplate &&
