@@ -12,40 +12,14 @@ import { graph } from "@pnp/graph";
 import "@pnp/graph/users";
 import * as moment from 'moment';
 import { IWeb } from "@pnp/sp/webs";
+import { IUserInfo, IPropertyMappings, IPropertyPair } from "./IModel";
 
-export interface IUserInfo {
-    ID: number;
-    Email: string;
-    LoginName: string;
-    DisplayName: string;
-    Picture: string;
-}
-
-export interface IPropertyMappings {
-    AzProperty: string;
-    SPProperty: string;
-}
-
-export interface IPropertyPair {
-    name: string;
-    value: string;
-}
-
-export interface IUserPropertyMapping {
-    UserID: string;
-    Properties: IPropertyPair[];
-}
-
-export interface IJsonMapping {
-    targetSiteUrl?: string;
-    targetAdminUrl?: string;
-    values?: IUserPropertyMapping[];
-}
 
 export interface ISPHelper {
     demoFunction: () => void;
     getCurrentUserInfo: () => Promise<IUserInfo>;
-    getPropertyMappings: () => Promise<any>;
+    getPropertyMappings: () => Promise<any[]>;
+    getPropertyMappingsTemplate: (propertyMappings: IPropertyMappings[]) => Promise<any>;
     addFilesToFolder: (filename: string, fileContent: any) => void;
     getFileContentAsBlob: (filepath: string) => void;
 }
@@ -58,7 +32,11 @@ export default class SPHelper implements ISPHelper {
     private SyncTemplateFilePath: string = "/Shared Documents/SyncJobTemplate/";
     private SyncUploadFilePath: string = "/Shared Documents/SyncJobUploadedFiles/";
     private SyncFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`;
+    private SyncCSVFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.csv`;
     private _web: IWeb = null;
+
+    private Lst_PropsMapping = 'Sync Properties Mapping';
+    private Lst_SyncJobs = 'UPS Sync Jobs';
 
     constructor(siteurl: string, tenantname: string, domainname: string, relativeurl: string) {
         this.SiteURL = siteurl;
@@ -91,17 +69,23 @@ export default class SPHelper implements ISPHelper {
         console.log(results2);
     }
     /**
-     * Generated the property mapping json content.
+     * Get the property mappings from the 'Sync Properties Mapping' list.
      */
-    public getPropertyMappings = async (): Promise<any> => {
-        let propertyMappings: IPropertyMappings[] = await sp.web.lists.getByTitle('Sync Properties Mapping').items
-            .select("AzProperty", "SPProperty")
+    public getPropertyMappings = async (): Promise<any[]> => {
+        return await this._web.lists.getByTitle(this.Lst_PropsMapping).items
+            .select("ID", "Title", "AzProperty", "SPProperty", "IsActive", "AutoSync")
             .filter(`IsActive eq 1`)
             .get();
+    }
+    /**
+     * Generated the property mapping json content. 
+     */
+    public getPropertyMappingsTemplate = async (propertyMappings: IPropertyMappings[]) => {
+        if (!propertyMappings) propertyMappings = await this.getPropertyMappings();
         let finalJson: string = "";
-        let propertyFair: IPropertyPair[] = [];
+        let propertyPair: IPropertyPair[] = [];
         propertyMappings.map((propsMap: IPropertyMappings) => {
-            propertyFair.push({
+            propertyPair.push({
                 name: propsMap.SPProperty,
                 value: ""
             });
@@ -112,13 +96,15 @@ export default class SPHelper implements ISPHelper {
             "values": [
                 {
                     "UserID": "userid@tenantname.onmicrosoft.com",
-                    "Properties": ${JSON.stringify(propertyFair)}
+                    "Properties": ${JSON.stringify(propertyPair)}
                 }
             ]
         }`;
-        //console.log(finalJson);
         return JSON.parse(finalJson);
     }
+    /**
+     * Get the file content as blob based on the file url.
+     */
     public getFileContentAsBlob = async (filepath: string) => {
         return await this._web.getFileByServerRelativeUrl(filepath).getBlob();
     }
@@ -126,27 +112,27 @@ export default class SPHelper implements ISPHelper {
      * Add a file to a folder with contents.
      * This is used for creating the template json file.
      */
-    public addFilesToFolder = async (fileContent: any) => {
+    public addFilesToFolder = async (fileContent: any, isCSV?: boolean) => {
         await this.checkAndCreateFolder(this.SiteRelativeURL + this.SyncTemplateFilePath);
-        return await sp.web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncTemplateFilePath)
+        return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncTemplateFilePath)
             .files
-            .add(decodeURI(this.SiteRelativeURL + this.SyncTemplateFilePath + this.SyncFileName), fileContent, true);
+            .add(decodeURI(this.SiteRelativeURL + this.SyncTemplateFilePath + (isCSV) ? this.SyncCSVFileName : this.SyncFileName), fileContent, true);
     }
     /**
      * Check for the template folder, if not creates.
      */
     public checkAndCreateFolder = async (folderPath: string) => {
         try {
-            await sp.web.getFolderByServerRelativeUrl(folderPath).get();
+            await this._web.getFolderByServerRelativeUrl(folderPath).get();
         } catch (err) {
-            await sp.web.folders.add(folderPath);
+            await this._web.folders.add(folderPath);
         }
     }
     /**
      * Get current logged in user information.
      */
     public getCurrentUserInfo = async (): Promise<IUserInfo> => {
-        let currentUserInfo = await sp.web.currentUser.get();
+        let currentUserInfo = await this._web.currentUser.get();
         return ({
             ID: currentUserInfo.Id,
             Email: currentUserInfo.Email,
@@ -155,4 +141,6 @@ export default class SPHelper implements ISPHelper {
             Picture: '/_layouts/15/userphoto.aspx?size=S&username=' + currentUserInfo.UserPrincipalName,
         });
     }
+
+
 }
