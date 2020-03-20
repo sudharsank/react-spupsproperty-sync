@@ -12,7 +12,7 @@ import { graph } from "@pnp/graph";
 import "@pnp/graph/users";
 import * as moment from 'moment';
 import { IWeb } from "@pnp/sp/webs";
-import { IUserInfo, IPropertyMappings, IPropertyPair } from "./IModel";
+import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType } from "./IModel";
 
 
 export interface ISPHelper {
@@ -21,7 +21,7 @@ export interface ISPHelper {
     getPropertyMappings: () => Promise<any[]>;
     getPropertyMappingsTemplate: (propertyMappings: IPropertyMappings[]) => Promise<any>;
     addFilesToFolder: (filename: string, fileContent: any) => void;
-    getFileContentAsBlob: (filepath: string) => void;
+    getFileContent: (filepath: string, contentType: FileContentType) => void;
 }
 
 export default class SPHelper implements ISPHelper {
@@ -30,7 +30,7 @@ export default class SPHelper implements ISPHelper {
     private SiteRelativeURL: string = "";
     private AdminSiteURL: string = "";
     private SyncTemplateFilePath: string = "/Shared Documents/SyncJobTemplate/";
-    private SyncUploadFilePath: string = "/Shared Documents/SyncJobUploadedFiles/";
+    private SyncUploadFilePath: string = "/Shared Documents/UPSDataToProcess/";
     private SyncJSONFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`;
     private SyncCSVFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.csv`;
     private _web: IWeb = null;
@@ -121,11 +121,20 @@ export default class SPHelper implements ISPHelper {
     /**
      * Get the file content as blob based on the file url.
      */
-    public getFileContentAsBlob = async (filepath: string) => {
-        return await this._web.getFileByServerRelativeUrl(filepath).getBlob();
+    public getFileContent = async (filepath: string, contentType: FileContentType) => {
+        switch(contentType) {
+            case FileContentType.Blob:
+                return await this._web.getFileByServerRelativeUrl(filepath).getBlob();
+            case FileContentType.ArrayBuffer:
+                return await this._web.getFileByServerRelativeUrl(filepath).getBuffer();
+            case FileContentType.Text:
+                return await this._web.getFileByServerRelativeUrl(filepath).getText();
+            case FileContentType.JSON:
+                return await this._web.getFileByServerRelativeUrl(filepath).getJSON();
+        }
     }
     /**
-     * Add a file to a folder with contents.
+     * Add the template file to a folder with contents.
      * This is used for creating the template json file.
      */
     public addFilesToFolder = async (fileContent: any, isCSV: boolean) => {
@@ -135,6 +144,16 @@ export default class SPHelper implements ISPHelper {
             .files
             .add(decodeURI(this.SiteRelativeURL + this.SyncTemplateFilePath + filename), fileContent, true);
     }
+    /**
+     * Add the data file to a folder with contents.
+     * This is used for creating the template json file.
+     */
+    public addDataFilesToFolder = async (fileContent: any, filename: string) => {
+        await this.checkAndCreateFolder(this.SiteRelativeURL + this.SyncUploadFilePath);
+        return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncUploadFilePath)
+            .files
+            .add(decodeURI(this.SiteRelativeURL + this.SyncUploadFilePath + filename), fileContent, true);
+    }    
     /**
      * Check for the template folder, if not creates.
      */

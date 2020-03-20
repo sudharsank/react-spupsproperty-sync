@@ -8,7 +8,7 @@ import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button'
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import styles from './SpupsProperySync.module.scss';
-import { IPropertyMappings } from '../../../Common/IModel';
+import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SPHelper from '../../../Common/SPHelper';
 import * as _ from 'lodash';
@@ -52,7 +52,7 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 			templateFileName: '',
 			showProgress: false,
 			disableButtons: false
-		}
+		};
 	}
 	/**
 	 * Component mount
@@ -110,6 +110,9 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 			</div>
 		);
 	}
+	/**
+	 * Get the property mappings that are included by the user
+	 */
 	private _getIncludedPropertyMapping = () => {
 		return _.filter(this.state.templateProperties, (o) => { return o.IsIncluded; });
 	}
@@ -149,7 +152,7 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 * Download the JSON file
 	 */
 	private getTemplateFile = async () => {
-		let blobContent: any = await this.props.helper.getFileContentAsBlob(this.state.downloadLink);
+		let blobContent: any = await this.props.helper.getFileContent(this.state.downloadLink, FileContentType.Blob);
 		if (window.navigator.msSaveOrOpenBlob) {
 			window.navigator.msSaveBlob(blobContent, this.state.templateFileName);
 		} else {
@@ -200,6 +203,6 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 					</div>
 				</Panel>
 			</div>
-		)
+		);
 	}
 }

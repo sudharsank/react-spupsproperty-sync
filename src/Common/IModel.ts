@@ -1,3 +1,9 @@
+export enum FileContentType {
+	Blob,
+	Text,
+	ArrayBuffer,
+	JSON
+}
 export interface IUserInfo {
 	ID: number;
 	Email: string;
@@ -31,3 +37,4 @@ export interface IJsonMapping {
 	targetAdminUrl?: string;
 	values?: IUserPropertyMapping[];
 }
+
