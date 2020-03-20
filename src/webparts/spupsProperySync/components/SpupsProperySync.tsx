@@ -1,20 +1,25 @@
 import * as React from 'react';
 import styles from './SpupsProperySync.module.scss';
-import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
-import { escape } from '@microsoft/sp-lodash-subset';
+import * as strings from 'SpupsProperySyncWebPartStrings';
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-import SPHelper from '../../../Common/SPHelper';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 import { FileTypeIcon, ApplicationType, IconType, ImageSize } from "@pnp/spfx-controls-react/lib/FileTypeIcon";
+import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
+import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
+import SPHelper from '../../../Common/SPHelper';
 import PropertyMappingList from './PropertyMappingList';
-let path = require('path');
+import UPPropertyData from './UPPropertyData';
 
 export interface ISpupsProperySyncState {
     propertyMappings: IPropertyMappings[];
     uploadedTemplate?: IFilePickerResult;
     uploadedFileURL?: string;
+    showUploadData: boolean;
+    showUploadProgress: boolean;
+    uploadedData?: any;
+    isCSV: boolean;
 }
 
 export default class SpupsProperySync extends React.Component<ISpupsProperySyncProps, ISpupsProperySyncState> {
@@ -23,6 +28,9 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         super(props);
         this.state = {
             propertyMappings: [],
+            showUploadData: false,
+            showUploadProgress: false,
+            isCSV: false
         };
         this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
             this.props.context.pageContext.legacyPageContext.tenantDisplayName,
@@ -38,6 +46,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     }
 
     private uploadDataToSync = async () => {
+        this.setState({ showUploadProgress: true });
         const { uploadedTemplate } = this.state;
         let filecontent: any = null;
         if (uploadedTemplate && uploadedTemplate.fileName) {
@@ -56,6 +65,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                     filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.JSON);
                 }
                 console.log(filecontent);
+                this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
             } else {
                 let dataToSync = await uploadedTemplate.downloadFileContent();
                 let filereader = new FileReader();
@@ -69,7 +79,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                         filecontent = await dataUploaded.file.getJSON();
                     }
                     console.log(filecontent);
-                }
+                    this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
+                };
             }
         }
     }
@@ -79,15 +90,15 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     }
 
     private _onSaveTemplate = (uploadedTemplate: IFilePickerResult) => {
-        this.setState({ uploadedTemplate });
+        this.setState({ uploadedTemplate, showUploadData: true });
     }
 
     private _onChangeTemplate = (uploadedTemplate: IFilePickerResult) => {
-        this.setState({ uploadedTemplate });
+        this.setState({ uploadedTemplate, showUploadData: true });
     }
 
     public render(): React.ReactElement<ISpupsProperySyncProps> {
-        const { propertyMappings, uploadedTemplate, uploadedFileURL } = this.state;
+        const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         return (
@@ -95,21 +106,32 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 <div className={styles.container}>
                     <div className={styles.row}>
                         <div className={styles.column}>
-                            <PropertyMappingList mappingProperties={propertyMappings} helper={this.helper} />
-                            <FilePicker
-                                accepts={[".json", ".csv"]}
-                                buttonIcon="FileImage"
-                                onSave={this._onSaveTemplate}
-                                onChanged={this._onChangeTemplate}
-                                context={this.props.context}
-                            />
+                            <PropertyMappingList mappingProperties={propertyMappings} helper={this.helper} disabled={showUploadProgress} />
+                            <div>
+                                <FilePicker
+                                    accepts={[".json", ".csv"]}
+                                    buttonIcon="FileImage"
+                                    onSave={this._onSaveTemplate}
+                                    onChanged={this._onChangeTemplate}
+                                    context={this.props.context}
+                                    disabled={showUploadProgress}
+                                    buttonLabel={"Select Data file"}
+                                    hideLinkUploadTab={true}
+                                    hideOrganisationalAssetTab={true}
+                                    hideWebSearchTab={true}
+                                />
+                            </div>
                             {fileurl &&
                                 <div style={{ color: "black" }}>
                                     <FileTypeIcon type={IconType.font} path={fileurl} />
-                  &nbsp;{uploadedTemplate.fileName}
+                                    &nbsp;{uploadedTemplate.fileName}
                                 </div>
                             }
-                            <PrimaryButton text="Upload Data to Sync" onClick={this.uploadDataToSync} />
+                            {showUploadData &&
+                                <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this.uploadDataToSync} disabled={showUploadProgress} />
+                            }
+                            {showUploadProgress && <Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" />}
+                            <UPPropertyData items={uploadedData} isCSV={isCSV} />
                             <PeoplePicker
                                 context={this.props.context}
                                 titleText="People Picker"

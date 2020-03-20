@@ -8,9 +8,9 @@ import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button'
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import styles from './SpupsProperySync.module.scss';
-import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SPHelper from '../../../Common/SPHelper';
+import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
 import * as _ from 'lodash';
 import { parse } from 'json2csv';
 
@@ -27,6 +27,7 @@ const csvIcon: IIconProps = { iconName: 'FileTemplate' };
 export interface IPropertyMappingProps {
 	mappingProperties: IPropertyMappings[];
 	helper: SPHelper;
+	disabled: boolean;
 }
 
 export interface IPropertyMappingState {
@@ -36,6 +37,7 @@ export interface IPropertyMappingState {
 	templateFileName: string;
 	showProgress: boolean;
 	disableButtons: boolean;
+	disableMappingButton: boolean;
 }
 
 export default class PropertyMappingList extends React.Component<IPropertyMappingProps, IPropertyMappingState> {
@@ -51,7 +53,8 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 			downloadLink: '',
 			templateFileName: '',
 			showProgress: false,
-			disableButtons: false
+			disableButtons: false,
+			disableMappingButton: false
 		};
 	}
 	/**
@@ -64,8 +67,9 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 * Component updated
 	 */
 	public componentDidUpdate = (prevProps: IPropertyMappingProps) => {
-		if (prevProps.mappingProperties !== this.props.mappingProperties) {
-			this.setState({ templateProperties: this.getDefaultTemplateProperties() });
+		if (prevProps.mappingProperties !== this.props.mappingProperties ||
+			prevProps.disabled !== this.props.disabled) {
+			this.setState({ templateProperties: this.getDefaultTemplateProperties(), disableMappingButton: this.props.disabled });
 		}
 	}
 	/**
@@ -122,7 +126,7 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	private _generateJSONTemplate = async () => {
 		this.setState({ disableButtons: true, showProgress: true });
 		const { helper } = this.props;
-		let jsonOut = await helper.getPropertyMappingsTemplate(this._getIncludedPropertyMapping());		
+		let jsonOut = await helper.getPropertyMappingsTemplate(this._getIncludedPropertyMapping());
 		let fileTemplate = await helper.addFilesToFolder(JSON.stringify(jsonOut), false);
 		this.setState({
 			downloadLink: fileTemplate.data.ServerRelativeUrl,
@@ -186,10 +190,10 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 * Component render
 	 */
 	public render(): JSX.Element {
-		const { isOpen, templateProperties } = this.state;
+		const { isOpen, templateProperties, disableMappingButton } = this.state;
 		return (
 			<div className={styles.propertyMappingList}>
-				<PrimaryButton text={strings.BtnPropertyMapping} onClick={this._openPropertyMappingPanel} />
+				<PrimaryButton text={strings.BtnPropertyMapping} onClick={this._openPropertyMappingPanel} disabled={disableMappingButton} />
 				<Panel isOpen={isOpen} onDismiss={this._dismissPanel} type={PanelType.largeFixed} closeButtonAriaLabel="Close" headerText={strings.PnlHeaderText}
 					headerClassName={styles.panelHeader} isFooterAtBottom={true} onRenderFooterContent={this._onRenderPanelFooterContent}>
 					<div className={styles.propertyMappingPanelContent}>

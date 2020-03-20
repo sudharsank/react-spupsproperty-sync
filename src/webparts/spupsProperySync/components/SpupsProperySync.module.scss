@@ -25,6 +25,10 @@
     @include ms-lgPush1;
   }
 }
+.emptyData {
+  color: $ms-error;
+  font-weight: bold;
+}
 .propertyMappingList {
   padding: 0px; 
 }
