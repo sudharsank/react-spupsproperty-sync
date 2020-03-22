@@ -3,37 +3,37 @@ import EditableCell from './EditableCell';
 
 export interface IDataRowProps {
     item: any;
+    columns: any;
     onTableUpdate: () => void;
     onDelRow: (item: any) => void;
 }
 
 export default function DataRow(props: IDataRowProps) {
     function onDelEvent() {
-        props.onDelRow(props.item)
+        props.onDelRow(props.item);
     }
-
     return (
         <tr className="eachRow">
-            <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
-                "type": "name",
-                value: props.item.name,
-                id: props.item.id
-            }} />
-            <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
-                type: "price",
-                value: props.item.price,
-                id: props.item.id
-            }} />
-            <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
-                type: "qty",
-                value: props.item.qty,
-                id: props.item.id
-            }} />
-            <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
-                type: "category",
-                value: props.item.category,
-                id: props.item.id
-            }} />
+            {props.columns.map(col => {
+                if(col !== "ImageUrl") {
+                    if (col == "UserID") {
+                        return <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
+                            "type": col,
+                            value: props.item.DisplayName,
+                            id: props.item.UserID,
+                            label: true,
+                            ImageUrl: props.item.ImageUrl
+                        }} />;
+                    } else {
+                        return <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
+                            "type": col,
+                            value: props.item[col],
+                            id: props.item.UserID,
+                            label: false
+                        }} />;
+                    }
+                }                
+            })}
             <td className="del-cell">
                 <input type="button" onClick={onDelEvent} value="X" className="del-btn" />
             </td>

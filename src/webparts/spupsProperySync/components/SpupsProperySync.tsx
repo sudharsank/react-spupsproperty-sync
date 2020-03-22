@@ -69,7 +69,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 } else if (ext.toLocaleLowerCase() == "json") {
                     filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.JSON);
                 }
-                console.log(filecontent);
+                //console.log(filecontent);
                 this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
             } else {
                 let dataToSync = await uploadedTemplate.downloadFileContent();
@@ -77,13 +77,12 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 filereader.readAsBinaryString(dataToSync);
                 filereader.onload = async () => {
                     let dataUploaded = await this.helper.addDataFilesToFolder(filereader.result, uploadedTemplate.fileName);
-                    //this.setState({ uploadedFileURL: dataUploaded.data.ServerRelativeUrl });
                     if (ext.toLocaleLowerCase() == "csv") {
                         filecontent = await dataUploaded.file.getText();
                     } else if (ext.toLocaleLowerCase() == "json") {
                         filecontent = await dataUploaded.file.getJSON();
                     }
-                    console.log(filecontent);
+                    //console.log(filecontent);
                     this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
                 };
             }
@@ -96,14 +95,16 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
 
     private _getManualPropertyTable = () => {
         const { propertyMappings, selectedUsers } = this.state;
-        console.log(this.state.selectedUsers);
+        //console.log(this.state.selectedUsers);
         let mappedUserData: any[] = [];
         if (selectedUsers && selectedUsers.length > 0) {
             selectedUsers.map(user => {
                 let userObj = new Object();
                 userObj['UserID'] = user.loginName;
+                userObj['DisplayName'] = user.text;
+                userObj['ImageUrl'] = user.imageUrl;
                 propertyMappings.map((propsMap: IPropertyMappings) => {
-                    userObj[propsMap.SPProperty] = ""
+                    userObj[propsMap.SPProperty] = "";
                 });
                 mappedUserData.push(userObj);
             });

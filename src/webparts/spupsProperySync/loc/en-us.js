@@ -9,6 +9,7 @@ define([], function() {
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",
+    BtnSaveForManual: "Save for Manual Update",
     BtnPropertyMapping: "Property Mapping",
     BtnUploadDataForSync: "Upload Data to Sync",
 

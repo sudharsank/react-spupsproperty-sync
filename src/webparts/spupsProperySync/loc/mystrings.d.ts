@@ -8,6 +8,7 @@ declare interface ISpupsProperySyncWebPartStrings {
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;
+  BtnSaveForManual: string;
   BtnPropertyMapping: string;
   BtnUploadDataForSync: string;
 

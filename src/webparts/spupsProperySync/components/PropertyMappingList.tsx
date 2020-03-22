@@ -41,6 +41,7 @@ export interface IPropertyMappingState {
 }
 
 export default class PropertyMappingList extends React.Component<IPropertyMappingProps, IPropertyMappingState> {
+	private includedProperties: IPropertyMappings[] = [];
 	/**
 	 * Default constructor
 	 * @param props Component props
@@ -61,7 +62,9 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 * Component mount
 	 */
 	public componentDidMount = () => {
-		this.setState({ templateProperties: this.getDefaultTemplateProperties() });
+		this.setState({
+			templateProperties: this.getDefaultTemplateProperties(),
+		});
 	}
 	/**
 	 * Component updated
@@ -69,7 +72,10 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	public componentDidUpdate = (prevProps: IPropertyMappingProps) => {
 		if (prevProps.mappingProperties !== this.props.mappingProperties ||
 			prevProps.disabled !== this.props.disabled) {
-			this.setState({ templateProperties: this.getDefaultTemplateProperties(), disableMappingButton: this.props.disabled });
+			this.setState({
+				templateProperties: this.getDefaultTemplateProperties(),
+				disableMappingButton: this.props.disabled
+			});
 		}
 	}
 	/**
