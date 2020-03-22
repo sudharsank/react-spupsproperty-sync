@@ -87,4 +87,36 @@
   .separator::before {
     background-color: $ms-themeLighter;
   }
-}  
+}
+.uppropertydata {
+  .uppropertylist {
+    overflow-x: auto;
+  }
+  div[data-automationid='DetailsHeader'] {
+    //border-bottom: 1px solid rgb(234, 234, 234);
+  }
+}
+.MessageContainer{
+  font-style: italic;
+  font-weight: bold !important;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  .errorMessage{
+    color: red !important;
+    padding-top: 10px !important;
+    text-align: center;
+  }
+  .successMessage{
+    color: #64BE1A !important;
+    padding-top: 10px !important;
+    text-align: center;
+  }
+  .warningMessage{
+    color: #BEBB1A !important;
+    padding-top: 10px !important;
+    text-align: center;
+  }
+  .infoMessage{
+    background-color: rgb(148, 210, 230) !important;
+  }
+}

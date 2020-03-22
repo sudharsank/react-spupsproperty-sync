@@ -17,6 +17,7 @@ define([], function() {
     TblColHeadSPProperty: "SharePoint Property",
     TblColHeadEnableDisable: "Enabled/Disabled",
 
-    EmptyDataText: "Empty!"
+    EmptyDataText: "Empty!",
+    EmptyDataWarningMsg: "Columns with empty values are not considered for update!"
   }
 });

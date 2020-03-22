@@ -17,6 +17,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   TblColHeadEnableDisable: string;
 
   EmptyDataText: string;
+  EmptyDataWarningMsg: string;
 }
 
 declare module 'SpupsProperySyncWebPartStrings' {

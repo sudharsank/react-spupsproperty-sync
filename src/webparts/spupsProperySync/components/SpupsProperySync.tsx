@@ -11,6 +11,7 @@ import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
 import SPHelper from '../../../Common/SPHelper';
 import PropertyMappingList from './PropertyMappingList';
 import UPPropertyData from './UPPropertyData';
+import ManualPropertyUpdate from '../ManualPropertyUpdate/ManualPropertyUpdate';
 
 export interface ISpupsProperySyncState {
     propertyMappings: IPropertyMappings[];
@@ -20,6 +21,8 @@ export interface ISpupsProperySyncState {
     showUploadProgress: boolean;
     uploadedData?: any;
     isCSV: boolean;
+    selectedUsers?: any[];
+    manualPropertyData: any[];
 }
 
 export default class SpupsProperySync extends React.Component<ISpupsProperySyncProps, ISpupsProperySyncState> {
@@ -30,7 +33,9 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             propertyMappings: [],
             showUploadData: false,
             showUploadProgress: false,
-            isCSV: false
+            isCSV: false,
+            selectedUsers: [],
+            manualPropertyData: []
         };
         this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
             this.props.context.pageContext.legacyPageContext.tenantDisplayName,
@@ -85,8 +90,25 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         }
     }
 
-    private _getPeoplePickerItems(items: any[]) {
-        console.log('Items:', items);
+    private _getPeoplePickerItems = (items: any[]) => {
+        this.setState({ selectedUsers: items });
+    }
+
+    private _getManualPropertyTable = () => {
+        const { propertyMappings, selectedUsers } = this.state;
+        console.log(this.state.selectedUsers);
+        let mappedUserData: any[] = [];
+        if (selectedUsers && selectedUsers.length > 0) {
+            selectedUsers.map(user => {
+                let userObj = new Object();
+                userObj['UserID'] = user.loginName;
+                propertyMappings.map((propsMap: IPropertyMappings) => {
+                    userObj[propsMap.SPProperty] = ""
+                });
+                mappedUserData.push(userObj);
+            });
+            this.setState({manualPropertyData: mappedUserData});
+        }        
     }
 
     private _onSaveTemplate = (uploadedTemplate: IFilePickerResult) => {
@@ -98,7 +120,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     }
 
     public render(): React.ReactElement<ISpupsProperySyncProps> {
-        const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV } = this.state;
+        const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         return (
@@ -143,6 +165,12 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                 showHiddenInUI={false}
                                 principalTypes={[PrincipalType.User]}
                                 resolveDelay={1000} />
+                            {selectedUsers && selectedUsers.length > 0 &&
+                                <PrimaryButton text={"Get User Properties"} onClick={this._getManualPropertyTable} />
+                            }
+                            {manualPropertyData && manualPropertyData.length > 0 &&
+                                <ManualPropertyUpdate userProperties={manualPropertyData} />
+                            }                            
                         </div>
                     </div>
                 </div>

@@ -2,6 +2,9 @@ import * as React from 'react';
 import styles from './SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import { DetailsList, buildColumns, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
+import MessageContainer from './MessageContainer';
+import { MessageScope } from '../../../Common/IModel';
+import * as csv from 'csvtojson';
 
 const jsonData: any = `[
     {
@@ -87,10 +90,15 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 	}
 
 	private _buildUploadDataList = async () => {
-		console.log(this.props.items);
-		console.log(this.props.isCSV);
-		let parsedJson = JSON.parse(jsonData);
-		console.log(parsedJson);
+		// console.log(this.props.items);
+		// console.log(this.props.isCSV);
+		let finalOut = await csv().fromString(csvData);
+		//console.log(finalOut);
+		this._getJSONData(finalOut);
+	}
+
+	private _getJSONData = (inputjson?: any) => {
+		let parsedJson = (inputjson) ? inputjson : JSON.parse(jsonData);
 		let _dynamicColumns: string[] = [];
 		Object.keys(parsedJson[0]).map((key) => {
 			_dynamicColumns.push(key);
@@ -104,11 +112,11 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 
 	public render(): JSX.Element {
 		const { items, columns, emptyValues } = this.state;
-		console.log(this.emptyValues);
+		//console.log(this.emptyValues);
 		return (
-			<div>
+			<div className={styles.uppropertydata}>
 				{this.emptyValues &&
-					<div>Columns with empty values are not considered for update!</div>
+					<MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyDataWarningMsg} />
 				}
 				<DetailsList
 					items={items}
@@ -119,7 +127,8 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 					constrainMode={ConstrainMode.unconstrained}
 					isHeaderVisible={true}
 					selectionMode={SelectionMode.none}
-					enableShimmer={true} />
+					enableShimmer={true} 
+					className={styles.uppropertylist}/>
 			</div>
 		);
 	}
