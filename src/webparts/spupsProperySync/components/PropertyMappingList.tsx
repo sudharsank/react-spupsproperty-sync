@@ -11,6 +11,7 @@ import styles from './SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SPHelper from '../../../Common/SPHelper';
 import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
+import PropertyMappingItem from './PropertyMappingItem';
 import * as _ from 'lodash';
 import { parse } from 'json2csv';
 
@@ -92,7 +93,9 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 		let templateProperties: IPropertyMappings[] = this.state.templateProperties;
 		let property = templateProperties.filter(prop => { return prop.ID == item.ID; });
 		if (property) property[0].IsIncluded = false;
-		this.setState({ templateProperties });
+		this.setState({ ...this.state, templateProperties });
+		this.render();
+		console.log(this.state.templateProperties);
 	}
 	/**
 	 * Get the default property mappings and then open the panel
@@ -178,25 +181,28 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	/**
 	 * Render the property mapping item in the List
 	 */
-	private _onRenderCell = (item: IPropertyMappings, index: number | undefined): JSX.Element => {
-		return (
-			<div className={styles.mappingcontainer} data-is-focusable={true}>
-				<div className={styles.propertydiv}>{item.AzProperty}</div>
-				<Separator className={styles.separator}>
-					<Icon iconName="DoubleChevronRight8" styles={iconStyles} />
-				</Separator>
-				<div className={styles.propertydiv}>{item.SPProperty}</div>
-				<div className={styles.togglediv}>
-					<Toggle label="" defaultChecked onChange={(e, checked) => { this._onEnableOrDisableProperty(item, checked); }} />
-				</div>
-			</div>
-		);
-	}
+	// private _onRenderCell = (item: IPropertyMappings, index: number | undefined): JSX.Element => {
+	// 	console.log("render cell:", item);
+	// 	return (
+	// 		// <div className={styles.mappingcontainer} data-is-focusable={true}>
+	// 		// 	<div className={styles.propertydiv}>{item.AzProperty}</div>
+	// 		// 	<Separator className={styles.separator}>
+	// 		// 		<Icon iconName="DoubleChevronRight8" styles={iconStyles} />
+	// 		// 	</Separator>
+	// 		// 	<div className={styles.propertydiv}>{item.SPProperty}</div>
+	// 		// 	<div className={styles.togglediv}>
+	// 		// 		<Toggle label="" checked={item.IsIncluded} onChange={(e, checked) => { this._onEnableOrDisableProperty(item, checked); }} />
+	// 		// 	</div>
+	// 		// </div>
+	// 		<PropertyMappingItem item={item} onEnableOrDisableProperty={this._onEnableOrDisableProperty} key={item.ID} />
+	// 	);
+	// }
 	/**
 	 * Component render
 	 */
 	public render(): JSX.Element {
 		const { isOpen, templateProperties, disableMappingButton } = this.state;
+		console.log(templateProperties);
 		return (
 			<div className={styles.propertyMappingList}>
 				<PrimaryButton text={strings.BtnPropertyMapping} onClick={this._openPropertyMappingPanel} disabled={disableMappingButton} />
@@ -209,7 +215,8 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 							<div className={styles.propertytitlediv}>{strings.TblColHeadSPProperty}</div>
 							<div className={styles.propertytitlediv} style={{ padding: '0px' }}>{strings.TblColHeadEnableDisable}</div>
 						</div>
-						<List items={templateProperties} onRenderCell={this._onRenderCell} />
+						{/* <List items={templateProperties} onRenderCell={this._onRenderCell} /> */}
+						<PropertyMappingItem items={templateProperties} onEnableOrDisableProperty={this._onEnableOrDisableProperty} />
 					</div>
 				</Panel>
 			</div>
