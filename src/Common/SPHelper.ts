@@ -18,6 +18,7 @@ import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType } from "./
 export interface ISPHelper {
     demoFunction: () => void;
     getCurrentUserInfo: () => Promise<IUserInfo>;
+    getAzurePropertyForUsers: (selectFields: string, filterQuery: string) => Promise<any[]>;
     getPropertyMappings: () => Promise<any[]>;
     getPropertyMappingsTemplate: (propertyMappings: IPropertyMappings[]) => Promise<any>;
     addFilesToFolder: (filename: string, fileContent: any) => void;
@@ -48,25 +49,16 @@ export default class SPHelper implements ISPHelper {
     public demoFunction = async () => {
         // let currentUser = await this.getCurrentUserInfo();
         // console.log(currentUser);
-        // let azUserInfo = await graph.users.getById('revathy@o365practice.onmicrosoft.com').select('employeeId', 'displayName').get();
-        // console.log(azUserInfo);
-        let userToUpdate = await sp.web.siteUsers.getByEmail('revathy@o365practice.onmicrosoft.com').get();
-        console.log(userToUpdate);
-        // await sp.profiles.setSingleValueProfileProperty(userToUpdate.LoginName, "Title", "Revathy Sudharsan");
-        // console.log("Updated");
-
-
-
-        const result = await sp.profiles.clientPeoplePickerSearchUser({
-            AllowEmailAddresses: true,
-            AllowMultipleEntities: false,
-            MaximumEntitySuggestions: 25,
-            QueryString: 'Manager:*sudha*'
-        });
-        console.log(result);
-
-        const results2: SearchResults = await sp.search("Manager:*Sudha*");
-        console.log(results2);
+        let azUserInfo = await graph.users
+            .filter(`userPrincipalName eq 'AdeleV@o365practice.onmicrosoft.com' or userPrincipalName eq 'AlexW@o365practice.onmicrosoft.com'`)
+            .select('employeeId', 'displayName', 'city', 'state').get();
+        console.log(azUserInfo);
+    }
+    /**
+     * Get the Azure property data for the Users
+     */
+    public getAzurePropertyForUsers = async (selectFields: string, filterQuery: string): Promise<any[]> => {
+        return await graph.users.filter(filterQuery).select(selectFields).get();
     }
     /**
      * Get the property mappings from the 'Sync Properties Mapping' list.
@@ -122,7 +114,7 @@ export default class SPHelper implements ISPHelper {
      * Get the file content as blob based on the file url.
      */
     public getFileContent = async (filepath: string, contentType: FileContentType) => {
-        switch(contentType) {
+        switch (contentType) {
             case FileContentType.Blob:
                 return await this._web.getFileByServerRelativeUrl(filepath).getBlob();
             case FileContentType.ArrayBuffer:
@@ -153,7 +145,7 @@ export default class SPHelper implements ISPHelper {
         return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncUploadFilePath)
             .files
             .add(decodeURI(this.SiteRelativeURL + this.SyncUploadFilePath + filename), fileContent, true);
-    }    
+    }
     /**
      * Check for the template folder, if not creates.
      */

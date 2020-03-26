@@ -38,16 +38,16 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
     }
 
     public handleProductTable = (evt) => {
-        var item = {
+        var newProp = {
             id: evt.target.id,
             name: evt.target.name,
             value: evt.target.value
         };
-        var products = this.state.data.slice();
-        var newitem = products.map((item) => {
+        var upProperties = this.state.data.slice();
+        var newitem = upProperties.map((item) => {
             for (var key in item) {
-                if (key == item.name && item.id == item.id) {
-                    item[key] = item.value;
+                if (key == newProp.name && item.UserID == newProp.id) {
+                    item[key] = newProp.value;
                 }
             }
             return item;
@@ -60,7 +60,7 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
         return (
             <div>
                 {data && data.length > 0 &&
-                    <>                        
+                    <>
                         <EditableTable onTableUpdate={this.handleProductTable.bind(this)} onRowDel={this.handleRowDel.bind(this)}
                             data={data} filterText={filterText} />
                     </>

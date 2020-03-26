@@ -1,4 +1,5 @@
 import * as React from 'react';
+import styles from './DynamicTable.module.scss';
 import DataRow from './DataRow';
 
 export interface IEditableTableProps {
@@ -15,12 +16,12 @@ export default function EditableTable(props: IEditableTableProps) {
         return (<DataRow item={item} columns={columns} onTableUpdate={props.onTableUpdate} onDelRow={props.onRowDel} key={item.UserID} />);
     });
     return (
-        <div style={{overflowX: 'auto'}}>
-            <table className="table table-bordered">
+        <div className={styles.dynamicTable}>
+            <table className={styles.table}>
                 <thead>
                     <tr>
                         {columns.map(key => {
-                            if (key !== "ImageUrl") {
+                            if (key.toLocaleLowerCase() !== "imageurl" && key.toLocaleLowerCase() !== "displayname") {
                                 return (<th>{key}</th>);
                             }
                         })}

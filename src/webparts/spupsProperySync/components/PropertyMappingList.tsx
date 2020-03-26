@@ -1,10 +1,6 @@
 import * as React from 'react';
-import { css, getFocusableByIndexPath } from 'office-ui-fabric-react/lib/Utilities';
-import { List } from 'office-ui-fabric-react/lib/List';
-import { Separator } from 'office-ui-fabric-react/lib/Separator';
-import { Icon, IIconStyles, IIconProps } from 'office-ui-fabric-react/lib/Icon';
-import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
-import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { IIconProps } from 'office-ui-fabric-react/lib/Icon';
+import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import styles from './SpupsProperySync.module.scss';
@@ -15,13 +11,6 @@ import PropertyMappingItem from './PropertyMappingItem';
 import * as _ from 'lodash';
 import { parse } from 'json2csv';
 
-const iconStyles: IIconStyles = {
-	root: {
-		fontSize: '24px',
-		height: '24px',
-		width: '24px'
-	}
-};
 const downloadIcon: IIconProps = { iconName: 'SaveTemplate' };
 const csvIcon: IIconProps = { iconName: 'FileTemplate' };
 
@@ -45,7 +34,7 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	private includedProperties: IPropertyMappings[] = [];
 	/**
 	 * Default constructor
-	 * @param props Component props
+	 * @param props
 	 */
 	constructor(props: IPropertyMappingProps) {
 		super(props);
@@ -95,14 +84,13 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 		if (property) property[0].IsIncluded = false;
 		this.setState({ ...this.state, templateProperties });
 		this.render();
-		console.log(this.state.templateProperties);
 	}
 	/**
 	 * Get the default property mappings and then open the panel
 	 */
 	private _openPropertyMappingPanel = () => {
 		let templateProperties = this.getDefaultTemplateProperties();
-		templateProperties.map(prop => { prop.IsIncluded = true; });
+		//templateProperties.map(prop => { prop.IsIncluded = true; });
 		this.setState({ templateProperties, isOpen: true });
 	}
 	/**
@@ -179,30 +167,10 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 		this.setState({ disableButtons: false, showProgress: false });
 	}
 	/**
-	 * Render the property mapping item in the List
-	 */
-	// private _onRenderCell = (item: IPropertyMappings, index: number | undefined): JSX.Element => {
-	// 	console.log("render cell:", item);
-	// 	return (
-	// 		// <div className={styles.mappingcontainer} data-is-focusable={true}>
-	// 		// 	<div className={styles.propertydiv}>{item.AzProperty}</div>
-	// 		// 	<Separator className={styles.separator}>
-	// 		// 		<Icon iconName="DoubleChevronRight8" styles={iconStyles} />
-	// 		// 	</Separator>
-	// 		// 	<div className={styles.propertydiv}>{item.SPProperty}</div>
-	// 		// 	<div className={styles.togglediv}>
-	// 		// 		<Toggle label="" checked={item.IsIncluded} onChange={(e, checked) => { this._onEnableOrDisableProperty(item, checked); }} />
-	// 		// 	</div>
-	// 		// </div>
-	// 		<PropertyMappingItem item={item} onEnableOrDisableProperty={this._onEnableOrDisableProperty} key={item.ID} />
-	// 	);
-	// }
-	/**
 	 * Component render
 	 */
 	public render(): JSX.Element {
 		const { isOpen, templateProperties, disableMappingButton } = this.state;
-		console.log(templateProperties);
 		return (
 			<div className={styles.propertyMappingList}>
 				<PrimaryButton text={strings.BtnPropertyMapping} onClick={this._openPropertyMappingPanel} disabled={disableMappingButton} />
@@ -215,7 +183,6 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 							<div className={styles.propertytitlediv}>{strings.TblColHeadSPProperty}</div>
 							<div className={styles.propertytitlediv} style={{ padding: '0px' }}>{strings.TblColHeadEnableDisable}</div>
 						</div>
-						{/* <List items={templateProperties} onRenderCell={this._onRenderCell} /> */}
 						<PropertyMappingItem items={templateProperties} onEnableOrDisableProperty={this._onEnableOrDisableProperty} />
 					</div>
 				</Panel>

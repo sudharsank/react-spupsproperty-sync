@@ -24,14 +24,6 @@ export default class PropertyMappingItem extends React.Component<IPropertyMappin
 		super(props);
 	}
 
-	// public componentDidUpdate = (prevProps: IPropertyMappingItemProps): void => {
-	// 	if (prevProps.items !== this.props.items) {
-	// 		this.forceUpdate(() => {
-	// 			this.render();
-	// 		});
-	// 	}
-	// }
-
 	public render(): JSX.Element {
 		const { items } = this.props;
 		return (

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { IconButton } from 'office-ui-fabric-react/lib/Button';
+import styles from './DynamicTable.module.scss';
 import EditableCell from './EditableCell';
 
 export interface IDataRowProps {
@@ -13,9 +15,9 @@ export default function DataRow(props: IDataRowProps) {
         props.onDelRow(props.item);
     }
     return (
-        <tr className="eachRow">
+        <tr>
             {props.columns.map(col => {
-                if(col !== "ImageUrl") {
+                if (col.toLocaleLowerCase() !== "imageurl" && col.toLocaleLowerCase() !== "displayname") {
                     if (col == "UserID") {
                         return <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
                             "type": col,
@@ -32,10 +34,10 @@ export default function DataRow(props: IDataRowProps) {
                             label: false
                         }} />;
                     }
-                }                
+                }
             })}
-            <td className="del-cell">
-                <input type="button" onClick={onDelEvent} value="X" className="del-btn" />
+            <td>
+                <IconButton iconProps={{ iconName: "UserRemove" }} title="Remove" ariaLabel="Remove" onClick={onDelEvent} />
             </td>
         </tr>
     );
