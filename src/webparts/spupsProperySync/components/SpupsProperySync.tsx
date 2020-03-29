@@ -7,12 +7,18 @@ import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/File
 import { FileTypeIcon, IconType } from "@pnp/spfx-controls-react/lib/FileTypeIcon";
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
-import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
+//import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 import SPHelper from '../../../Common/SPHelper';
-import PropertyMappingList from './PropertyMappingList';
+import PropertyMappingList from './PropertyMapping/PropertyMappingList';
 import UPPropertyData from './UPPropertyData';
-import ManualPropertyUpdate from '../ManualPropertyUpdate/ManualPropertyUpdate';
+import ManualPropertyUpdate from './ManualPropertyUpdate';
+import AzurePropertyView from './AzurePropertyView';
 import * as _ from 'lodash';
+
+export interface ISpupsProperySyncProps {
+    context: WebPartContext;
+}
 
 export interface ISpupsProperySyncState {
     propertyMappings: IPropertyMappings[];
@@ -20,6 +26,8 @@ export interface ISpupsProperySyncState {
     uploadedFileURL?: string;
     showUploadData: boolean;
     showUploadProgress: boolean;
+    showPropsLoader: boolean;
+    disablePropsButtons: boolean;
     uploadedData?: any;
     isCSV: boolean;
     selectedUsers?: any[];
@@ -40,6 +48,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             propertyMappings: [],
             showUploadData: false,
             showUploadProgress: false,
+            showPropsLoader: false,
+            disablePropsButtons: false,
             isCSV: false,
             selectedUsers: [],
             manualPropertyData: [],
@@ -58,6 +68,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
         propertyMappings.map(prop => { prop.IsIncluded = true; });
         this.setState({ propertyMappings });
+        //this.helper.demoFunction();
     }
     /**
      * Uploading data file and displaying the contents of the file
@@ -108,9 +119,10 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Display the inline editing table to edit the properties for manual update
      */
     private _getManualPropertyTable = () => {
+        this.setState({ disablePropsButtons: true, showPropsLoader: true });
         const { propertyMappings, selectedUsers } = this.state;
         let includedProperties: IPropertyMappings[] = propertyMappings.filter((o) => { return o.IsIncluded; });
-        let mappedUserData: any[] = [];
+        let manualPropertyData: any[] = [];
         if (selectedUsers && selectedUsers.length > 0) {
             selectedUsers.map(user => {
                 let userObj = new Object();
@@ -120,19 +132,21 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 includedProperties.map((propsMap: IPropertyMappings) => {
                     userObj[propsMap.SPProperty] = "";
                 });
-                mappedUserData.push(userObj);
+                manualPropertyData.push(userObj);
             });
-            this.setState({ manualPropertyData: mappedUserData });
+            this.setState({ manualPropertyData, azurePropertyData: [], showPropsLoader: false, disablePropsButtons: false });
+        } else {
+            this.setState({ disablePropsButtons: false, showPropsLoader: false });
         }
     }
     /**
      * Get the property values from Azure
      */
     private _getAzurePropertyTable = async () => {
+        this.setState({ disablePropsButtons: true, showPropsLoader: true });
         const { propertyMappings, selectedUsers } = this.state;
         let includedProperties: IPropertyMappings[] = propertyMappings.filter((o) => { return o.IsIncluded; });
-        let selectFields: string = _.map(includedProperties, 'AzProperty').join(',');
-        selectFields += ",userPrincipalName, displayName";
+        let selectFields: string = "id, userPrincipalName, displayName, " + _.map(includedProperties, 'AzProperty').join(',');
         let tempQuery: string[] = []; let filterQuery: string = ``;
         if (selectedUsers && selectedUsers.length > 0) {
             selectedUsers.map(user => {
@@ -140,7 +154,9 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             });
             filterQuery = tempQuery.join(' or ');
             let azurePropertyData = await this.helper.getAzurePropertyForUsers(selectFields, filterQuery);
-            this.setState({ azurePropertyData });
+            this.setState({ azurePropertyData, manualPropertyData: [], showPropsLoader: false, disablePropsButtons: false });
+        } else {
+            this.setState({ disablePropsButtons: false, showPropsLoader: false });
         }
     }
     /**
@@ -156,11 +172,23 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ uploadedTemplate, showUploadData: true });
     }
     /**
+     * Update with manual properties
+     */
+    private _updateSPWithManualProperties = async (data: any[]) => {
+        console.log("_updateSPWithManualProperties: ", data);
+    }
+    /**
+     * Update with azure properties
+     */
+    private _updateSPWithAzureProperties = async (data: any[]) => {
+        console.log("_updateSPWithAzureProperties: ", data);
+    }
+    /**
      * Component render
      */
     public render(): React.ReactElement<ISpupsProperySyncProps> {
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
-            azurePropertyData } = this.state;
+            azurePropertyData, disablePropsButtons, showPropsLoader } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         return (
@@ -196,26 +224,27 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                             <UPPropertyData items={uploadedData} isCSV={isCSV} />
                             <PeoplePicker
                                 context={this.props.context}
-                                titleText="People Picker"
+                                titleText={strings.PPLPickerTitleText}
                                 personSelectionLimit={20}
                                 groupName={""} // Leave this blank in case you want to filter from all users
-                                showtooltip={true}
-                                isRequired={true}
+                                showtooltip={false}
+                                isRequired={false}
                                 selectedItems={this._getPeoplePickerItems}
                                 showHiddenInUI={false}
                                 principalTypes={[PrincipalType.User]}
-                                resolveDelay={1000} />
+                                resolveDelay={500} />
                             {selectedUsers && selectedUsers.length > 0 &&
-                                <>
-                                    <PrimaryButton text={"Get User Properties"} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} />
-                                    <PrimaryButton text={"Get Azure Properties"} onClick={this._getAzurePropertyTable} />
-                                </>
+                                <div style={{ marginTop: "5px" }}>
+                                    <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons} />
+                                    <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable} disabled={disablePropsButtons} />
+                                    {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
+                                </div>
                             }
                             {manualPropertyData && manualPropertyData.length > 0 &&
-                                <ManualPropertyUpdate userProperties={manualPropertyData} />
+                                <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties} />
                             }
                             {azurePropertyData && azurePropertyData.length > 0 &&
-                                <ManualPropertyUpdate userProperties={azurePropertyData} />
+                                <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />
                             }
                         </div>
                     </div>

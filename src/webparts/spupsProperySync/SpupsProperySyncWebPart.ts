@@ -12,7 +12,7 @@ import { graph } from "@pnp/graph";
 
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SpupsProperySync from './components/SpupsProperySync';
-import { ISpupsProperySyncProps } from './components/ISpupsProperySyncProps';
+import { ISpupsProperySyncProps } from './components/SpupsProperySync';
 import * as jQuery from 'jquery';
 
 export interface ISpupsProperySyncWebPartProps {

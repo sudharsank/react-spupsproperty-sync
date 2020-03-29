@@ -8,7 +8,7 @@ import * as csv from 'csvtojson';
 
 const jsonData: any = `[
     {
-        "UserID": "user1@tenantname.onmicrosoft.com",
+        "UserID": "AdeleV@o365practice.onmicrosoft.com",
         "Department": "department 1",
         "Office": "India",
         "CellPhone": "345345",
@@ -16,7 +16,7 @@ const jsonData: any = `[
         "PostalCode": ""
     },
     {
-        "UserID": "user2@tenantname.onmicrosoft.com",
+        "UserID": "GradyA@o365practice.onmicrosoft.com",
         "Department": "",
         "Office": "Singapore",
         "CellPhone": "3434534",
@@ -25,8 +25,8 @@ const jsonData: any = `[
     }
 ]`;
 const csvData = `UserID,"Department, SPS-Department","Title, SPS-jobTitle","Office, SPS-Location",workPhone,CellPhone,Fax,StreetAddress,City,State,PostalCode,Country
-user1@tenantname.onmicrosoft.com,dept1,Title 1,Office 1,324234234,455454,34234,Street address 1,City 1,State 1,876987,Country 1
-user2@tenantname.onmicrosoft.com,dept2,Title 2,Office 2,234233423,343434,234234,street address 2,City 2,State 2,234567,Country 2`;
+AdeleV@o365practice.onmicrosoft.com,dept1,Title 1,Office 1,324234234,455454,34234,Street address 1,City 1,State 1,876987,Country 1
+GradyA@o365practice.onmicrosoft.com,dept2,Title 2,Office 2,234233423,343434,234234,street address 2,City 2,State 2,234567,Country 2`;
 
 export interface IUPPropertyDataProps {
 	items: any;
@@ -42,7 +42,6 @@ export interface IUPPropertyDataState {
 }
 
 export default class UPPropertyData extends React.Component<IUPPropertyDataProps, IUPPropertyDataState> {
-	private emptyValues: boolean = false;
 	constructor(props: IUPPropertyDataProps) {
 		super(props);
 		this.state = {
@@ -65,7 +64,7 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 	}
 
 	private _buildColumns = (columns: string[]): IColumn[] => {
-		this.emptyValues = false;
+		this.setState({emptyValues: false});
 		let cols: IColumn[] = [];
 		if (columns && columns.length > 0) {
 			columns.map((col: string) => {
@@ -78,7 +77,7 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 							if (item[col]) {
 								return (<div>{item[col]}</div>);
 							} else {
-								this.emptyValues = true;
+								this.setState({emptyValues: true});
 								return (<div className={styles.emptyData}>{strings.EmptyDataText}</div>);
 							}
 						}
@@ -90,11 +89,18 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 	}
 
 	private _buildUploadDataList = async () => {
+		const { items, isCSV } = this.props;
+		if (items) {
+			if (isCSV) {
+				let finalOut: any = await csv().fromString(items);
+				this._getJSONData(finalOut);
+			}
+			else this._getJSONData(items);
+		}
 		// console.log(this.props.items);
 		// console.log(this.props.isCSV);
-		let finalOut = await csv().fromString(csvData);
+		//let finalOut = await csv().fromString(csvData);
 		//console.log(finalOut);
-		this._getJSONData(finalOut);
 	}
 
 	private _getJSONData = (inputjson?: any) => {
@@ -105,8 +111,7 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 		});
 		this.setState({
 			columns: this._buildColumns(_dynamicColumns),
-			items: parsedJson,
-			emptyValues: this.emptyValues
+			items: parsedJson
 		});
 	}
 
@@ -115,20 +120,22 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 		//console.log(this.emptyValues);
 		return (
 			<div className={styles.uppropertydata}>
-				{this.emptyValues &&
+				{emptyValues &&
 					<MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyDataWarningMsg} />
 				}
-				<DetailsList
-					items={items}
-					setKey="set"
-					columns={columns}
-					compact={true}
-					layoutMode={DetailsListLayoutMode.justified}
-					constrainMode={ConstrainMode.unconstrained}
-					isHeaderVisible={true}
-					selectionMode={SelectionMode.none}
-					enableShimmer={true} 
-					className={styles.uppropertylist}/>
+				{items && items.length > 0 &&
+					<DetailsList
+						items={items}
+						setKey="set"
+						columns={columns}
+						compact={true}
+						layoutMode={DetailsListLayoutMode.justified}
+						constrainMode={ConstrainMode.unconstrained}
+						isHeaderVisible={true}
+						selectionMode={SelectionMode.none}
+						enableShimmer={true}
+						className={styles.uppropertylist} />
+				}
 			</div>
 		);
 	}

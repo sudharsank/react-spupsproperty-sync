@@ -13,6 +13,7 @@ import "@pnp/graph/users";
 import * as moment from 'moment';
 import { IWeb } from "@pnp/sp/webs";
 import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType } from "./IModel";
+import * as _ from 'lodash';
 
 
 export interface ISPHelper {
@@ -58,7 +59,8 @@ export default class SPHelper implements ISPHelper {
      * Get the Azure property data for the Users
      */
     public getAzurePropertyForUsers = async (selectFields: string, filterQuery: string): Promise<any[]> => {
-        return await graph.users.filter(filterQuery).select(selectFields).get();
+        let users = await graph.users.filter(filterQuery).select(selectFields).get();
+        return _.orderBy(users, 'displayName', 'asc');
     }
     /**
      * Get the property mappings from the 'Sync Properties Mapping' list.

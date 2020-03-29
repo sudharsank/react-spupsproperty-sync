@@ -3,8 +3,8 @@ import { List } from 'office-ui-fabric-react/lib/List';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
 import { Icon, IIconStyles, IIconProps } from 'office-ui-fabric-react/lib/Icon';
 import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
-import styles from './SpupsProperySync.module.scss';
-import { IPropertyMappings } from '../../../Common/IModel';
+import styles from './PropertyMapping.module.scss';
+import { IPropertyMappings } from '../../../../Common/IModel';
 
 const iconStyles: IIconStyles = {
 	root: {
