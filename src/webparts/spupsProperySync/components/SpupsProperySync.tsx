@@ -65,6 +65,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Component mount
      */
     public componentDidMount = async () => {
+        console.log(this.props.context);
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
         propertyMappings.map(prop => { prop.IsIncluded = true; });
         this.setState({ propertyMappings });
@@ -73,7 +74,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     /**
      * Uploading data file and displaying the contents of the file
      */
-    private uploadDataToSync = async () => {
+    private _uploadDataToSync = async () => {
         this.setState({ showUploadProgress: true });
         const { uploadedTemplate } = this.state;
         let filecontent: any = null;
@@ -176,12 +177,60 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      */
     private _updateSPWithManualProperties = async (data: any[]) => {
         console.log("_updateSPWithManualProperties: ", data);
+        let finalJson = this._prepareJSONForAzFunc(data, false);
+        console.log("Manual Final Json: ", finalJson);
     }
     /**
      * Update with azure properties
      */
     private _updateSPWithAzureProperties = async (data: any[]) => {
         console.log("_updateSPWithAzureProperties: ", data);
+        let finalJson = this._prepareJSONForAzFunc(data, true);
+        console.log("Azure Final Json: ", finalJson);
+    }
+    /**
+     * Prepare JSON based on the manual or az data to call AZ FUNC.
+     */
+    private _prepareJSONForAzFunc = (data: any[], isAzure: boolean): string => {
+        let finalJson: string = "";
+        if (data && data.length > 0) {
+            let userPropMapping = new Object();
+            userPropMapping['targetSiteUrl'] = this.props.context.pageContext.legacyPageContext.webAbsoluteUrl;
+            userPropMapping['targetAdminUrl'] = `https://${this.props.context.pageContext.legacyPageContext.tenantDisplayName}-admin.${this.props.context.pageContext.legacyPageContext.webDomain}`;
+            userPropMapping['usecert'] = false;
+            let propValues: any[] = [];
+            data.map((userprop: any) => {
+                let userPropValue: any = {};
+                let userProperties: any[] = [];
+                let userPropertiesKeys: string[] = Object.keys(userprop);
+                userPropertiesKeys.map((prop: string) => {
+                    if (isAzure && prop.toLowerCase() == "userprincipalname") {
+                        userPropValue['userid'] = userprop[prop].indexOf('|') > 0 ? userprop[prop].split('|')[2] : userprop[prop];
+                    }
+                    if (!isAzure && prop.toLowerCase() == "userid") {
+                        userPropValue['userid'] = userprop[prop].indexOf('|') > 0 ? userprop[prop].split('|')[2] : userprop[prop];
+                    }
+                    if (prop.toLowerCase() !== "userid" && prop.toLowerCase() !== "id" && prop.toLowerCase() !== "displayname"
+                        && prop.toLowerCase() !== "userprincipalname" && prop.toLowerCase() !== "imageurl") {
+                        let objProp = new Object();
+                        objProp['name'] = isAzure ? this._getSPPropertyName(prop) : prop;
+                        objProp['value'] = userprop[prop];
+                        userProperties.push(JSON.parse(JSON.stringify(objProp)));
+                    }
+                });
+                userPropValue['properties'] = JSON.parse(JSON.stringify(userProperties));
+                propValues.push(JSON.parse(JSON.stringify(userPropValue)));
+            });
+            userPropMapping['value'] = propValues;
+            finalJson = JSON.stringify(userPropMapping);
+        }
+        return finalJson;
+    }
+    /**
+     * Get SPProperty name for Azure Property
+     */
+    private _getSPPropertyName = (azPropName: string): string => {
+        return this.state.propertyMappings.filter((o) => { return o.AzProperty.toLowerCase() === azPropName.toLowerCase(); })[0].SPProperty;
     }
     /**
      * Component render
@@ -218,14 +267,14 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                 </div>
                             }
                             {showUploadData &&
-                                <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this.uploadDataToSync} disabled={showUploadProgress} />
+                                <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress} />
                             }
                             {showUploadProgress && <Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" />}
                             <UPPropertyData items={uploadedData} isCSV={isCSV} />
                             <PeoplePicker
                                 context={this.props.context}
                                 titleText={strings.PPLPickerTitleText}
-                                personSelectionLimit={20}
+                                personSelectionLimit={10}
                                 groupName={""} // Leave this blank in case you want to filter from all users
                                 showtooltip={false}
                                 isRequired={false}
