@@ -97,14 +97,10 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 			}
 			else this._getJSONData(items);
 		}
-		// console.log(this.props.items);
-		// console.log(this.props.isCSV);
-		//let finalOut = await csv().fromString(csvData);
-		//console.log(finalOut);
 	}
 
 	private _getJSONData = (inputjson?: any) => {
-		let parsedJson = (inputjson) ? inputjson : JSON.parse(jsonData);
+		let parsedJson = (inputjson) ? inputjson : JSON.parse(inputjson);
 		let _dynamicColumns: string[] = [];
 		Object.keys(parsedJson[0]).map((key) => {
 			_dynamicColumns.push(key);

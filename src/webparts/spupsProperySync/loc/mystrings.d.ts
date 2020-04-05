@@ -25,6 +25,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptyDataText: string;
   EmptyDataWarningMsg: string;
   EmptyTable: string;
+  UserListChanges: string;
+  UserListEmpty: string;
 }
 
 declare module 'SpupsProperySyncWebPartStrings' {

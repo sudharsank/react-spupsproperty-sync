@@ -25,6 +25,8 @@ define([], function() {
 
     EmptyDataText: "Empty!",
     EmptyDataWarningMsg: "Columns with empty values are not considered for update!",
-    EmptyTable: "Sorry, no data to be displayed!"
+    EmptyTable: "Sorry, no data to be displayed!",
+    UserListChanges: "Changes in user list, please remove the user from the table manually or reinitialize or get the Azure properties again!",
+    UserListEmpty: "Since all the users have been removed, the table has been cleared!"
   }
 });

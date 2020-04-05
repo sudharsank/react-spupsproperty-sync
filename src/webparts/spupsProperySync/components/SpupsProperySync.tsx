@@ -6,7 +6,7 @@ import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 import { FileTypeIcon, IconType } from "@pnp/spfx-controls-react/lib/FileTypeIcon";
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
-import { IPropertyMappings, FileContentType } from '../../../Common/IModel';
+import { IPropertyMappings, FileContentType, MessageScope } from '../../../Common/IModel';
 //import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import SPHelper from '../../../Common/SPHelper';
@@ -15,6 +15,7 @@ import UPPropertyData from './UPPropertyData';
 import ManualPropertyUpdate from './ManualPropertyUpdate';
 import AzurePropertyView from './AzurePropertyView';
 import * as _ from 'lodash';
+import MessageContainer from './MessageContainer';
 
 export interface ISpupsProperySyncProps {
     context: WebPartContext;
@@ -33,6 +34,7 @@ export interface ISpupsProperySyncState {
     selectedUsers?: any[];
     manualPropertyData: any[];
     azurePropertyData: any[];
+    reloadGetProperties: boolean;
 }
 
 export default class SpupsProperySync extends React.Component<ISpupsProperySyncProps, ISpupsProperySyncState> {
@@ -53,7 +55,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             isCSV: false,
             selectedUsers: [],
             manualPropertyData: [],
-            azurePropertyData: []
+            azurePropertyData: [],
+            reloadGetProperties: false
         };
         this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
             this.props.context.pageContext.legacyPageContext.tenantDisplayName,
@@ -114,7 +117,17 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Triggers when the users are selected for manual update
      */
     private _getPeoplePickerItems = (items: any[]) => {
-        this.setState({ selectedUsers: items });
+        let reloadGetProperties: boolean = false;
+        if (this.state.selectedUsers.length > items.length) {
+            if (this.state.manualPropertyData.length > 0 || this.state.azurePropertyData.length > 0) {
+                reloadGetProperties = true;
+            }
+        }
+        this.setState({ selectedUsers: items, reloadGetProperties }, () => {
+            if (this.state.selectedUsers.length <= 0) {
+                this.state.manualPropertyData.length > 0 ? this._getManualPropertyTable() : this._getAzurePropertyTable();
+            }
+        });
     }
     /**
      * Display the inline editing table to edit the properties for manual update
@@ -137,7 +150,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             });
             this.setState({ manualPropertyData, azurePropertyData: [], showPropsLoader: false, disablePropsButtons: false });
         } else {
-            this.setState({ disablePropsButtons: false, showPropsLoader: false });
+            this.setState({ disablePropsButtons: false, showPropsLoader: false, manualPropertyData: [] });
         }
     }
     /**
@@ -157,7 +170,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             let azurePropertyData = await this.helper.getAzurePropertyForUsers(selectFields, filterQuery);
             this.setState({ azurePropertyData, manualPropertyData: [], showPropsLoader: false, disablePropsButtons: false });
         } else {
-            this.setState({ disablePropsButtons: false, showPropsLoader: false });
+            this.setState({ disablePropsButtons: false, showPropsLoader: false, azurePropertyData: [] });
         }
     }
     /**
@@ -179,6 +192,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         console.log("_updateSPWithManualProperties: ", data);
         let finalJson = this._prepareJSONForAzFunc(data, false);
         console.log("Manual Final Json: ", finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
     }
     /**
      * Update with azure properties
@@ -187,6 +201,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         console.log("_updateSPWithAzureProperties: ", data);
         let finalJson = this._prepareJSONForAzFunc(data, true);
         console.log("Azure Final Json: ", finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
     }
     /**
      * Prepare JSON based on the manual or az data to call AZ FUNC.
@@ -237,7 +252,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      */
     public render(): React.ReactElement<ISpupsProperySyncProps> {
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
-            azurePropertyData, disablePropsButtons, showPropsLoader } = this.state;
+            azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         return (
@@ -282,6 +297,23 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                 showHiddenInUI={false}
                                 principalTypes={[PrincipalType.User]}
                                 resolveDelay={500} />
+                            {reloadGetProperties ? (
+                                <>
+                                    {selectedUsers.length > 0 &&
+                                        <div>
+                                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListChanges} />
+                                        </div>
+                                    }
+                                    {selectedUsers.length <= 0 &&
+                                        <div>
+                                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} />
+                                        </div>
+                                    }
+                                </>
+                            ) : (
+                                    <></>
+                                )
+                            }
                             {selectedUsers && selectedUsers.length > 0 &&
                                 <div style={{ marginTop: "5px" }}>
                                     <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons} />
