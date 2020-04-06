@@ -25,6 +25,11 @@
     @include ms-lgPush1;
   }
 }
+.periodmenu {
+  margin-bottom: 15px !important;
+  width: 85%;
+  display: inline-block;
+}
 .emptyData {
   color: $ms-error;
   font-weight: bold;

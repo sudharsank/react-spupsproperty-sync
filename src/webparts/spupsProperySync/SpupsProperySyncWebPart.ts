@@ -6,7 +6,7 @@ import {
     PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart, WebPartContext } from '@microsoft/sp-webpart-base';
-
+import { PropertyFieldListPicker, PropertyFieldListPickerOrderBy } from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
 import { sp } from '@pnp/sp';
 import { graph } from "@pnp/graph";
 
@@ -17,6 +17,7 @@ import * as jQuery from 'jquery';
 
 export interface ISpupsProperySyncWebPartProps {
     context: WebPartContext;
+    templateLib: string;
 }
 
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
@@ -35,11 +36,17 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
         const element: React.ReactElement<ISpupsProperySyncProps> = React.createElement(
             SpupsProperySync,
             {
-                context: this.context
+                context: this.context,
+                templateLib: this.properties.templateLib,
+                openPropertyPane: this.openPropertyPane
             }
         );
 
         ReactDom.render(element, this.domElement);
+    }
+
+    protected get disableReactivePropertyChanges() {
+        return true;
     }
 
     protected onDispose(): void {
@@ -48,6 +55,10 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
 
     protected get dataVersion(): Version {
         return Version.parse('1.0');
+    }
+
+    private openPropertyPane = (): void => {
+        this.context.propertyPane.open();
     }
 
     protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
@@ -61,8 +72,20 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                         {
                             groupName: strings.BasicGroupName,
                             groupFields: [
-                                PropertyPaneTextField('description', {
-                                    label: strings.DescriptionFieldLabel
+                                PropertyFieldListPicker('templateLib', {
+                                    key: 'templateLibFieldId',
+                                    label: strings.PropTemplateLibLabel,
+                                    selectedList: this.properties.templateLib,
+                                    includeHidden: false,
+                                    orderBy: PropertyFieldListPickerOrderBy.Title,
+                                    disabled: false,
+                                    onPropertyChange: this.onPropertyPaneFieldChanged.bind(this),
+                                    properties: this.properties,
+                                    context: this.context,
+                                    onGetErrorMessage: null,
+                                    deferredValidationTime: 0,
+                                    baseTemplate: 101,
+                                    listsToExclude: ['Documents']
                                 })
                             ]
                         }

@@ -3,6 +3,10 @@ declare interface ISpupsProperySyncWebPartStrings {
   BasicGroupName: string;
   DescriptionFieldLabel: string;
 
+  PlaceholderIconText: string;
+  PlaceholderDescription: string;
+  PlaceholderButtonLabel: string;
+
   GenerateTemplateLoader: string;
   UploadDataToSyncLoader: string;
   PropsLoader: string;
@@ -27,6 +31,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptyTable: string;
   UserListChanges: string;
   UserListEmpty: string;
+
+  PropTemplateLibLabel: string;
 }
 
 declare module 'SpupsProperySyncWebPartStrings' {

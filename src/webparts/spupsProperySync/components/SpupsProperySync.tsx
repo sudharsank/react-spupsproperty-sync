@@ -1,10 +1,12 @@
 import * as React from 'react';
 import styles from './SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
+import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 import { FileTypeIcon, IconType } from "@pnp/spfx-controls-react/lib/FileTypeIcon";
+import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import { IPropertyMappings, FileContentType, MessageScope } from '../../../Common/IModel';
 //import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
@@ -19,6 +21,8 @@ import MessageContainer from './MessageContainer';
 
 export interface ISpupsProperySyncProps {
     context: WebPartContext;
+    templateLib: string;
+    openPropertyPane: () => void;
 }
 
 export interface ISpupsProperySyncState {
@@ -35,6 +39,8 @@ export interface ISpupsProperySyncState {
     manualPropertyData: any[];
     azurePropertyData: any[];
     reloadGetProperties: boolean;
+    helper: SPHelper;
+    selectedMenu?: string;
 }
 
 export default class SpupsProperySync extends React.Component<ISpupsProperySyncProps, ISpupsProperySyncState> {
@@ -56,23 +62,33 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             selectedUsers: [],
             manualPropertyData: [],
             azurePropertyData: [],
-            reloadGetProperties: false
+            reloadGetProperties: false,
+            helper: null,
+            selectedMenu: '0'
         };
-        this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
-            this.props.context.pageContext.legacyPageContext.tenantDisplayName,
-            this.props.context.pageContext.legacyPageContext.webDomain,
-            this.props.context.pageContext.web.serverRelativeUrl
-        );
     }
     /**
      * Component mount
      */
     public componentDidMount = async () => {
-        console.log(this.props.context);
+        this.initializeHelper();
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
         propertyMappings.map(prop => { prop.IsIncluded = true; });
         this.setState({ propertyMappings });
-        //this.helper.demoFunction();
+    }
+    public componentDidUpdate = (prevProps: ISpupsProperySyncProps) => {
+        if (prevProps.templateLib !== this.props.templateLib) {
+            this.initializeHelper();
+        }
+    }
+    private initializeHelper = () => {
+        this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
+            this.props.context.pageContext.legacyPageContext.tenantDisplayName,
+            this.props.context.pageContext.legacyPageContext.webDomain,
+            this.props.context.pageContext.web.serverRelativeUrl,
+            this.props.templateLib
+        );
+        this.setState({ helper: this.helper });
     }
     /**
      * Uploading data file and displaying the contents of the file
@@ -247,86 +263,120 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     private _getSPPropertyName = (azPropName: string): string => {
         return this.state.propertyMappings.filter((o) => { return o.AzProperty.toLowerCase() === azPropName.toLowerCase(); })[0].SPProperty;
     }
+
+    private _onMenuClick = (item?: PivotItem, ev?: React.MouseEvent<HTMLElement, MouseEvent>): void => {
+        if (item) {
+            this.setState({
+                selectedMenu: item.props.itemKey
+            }, () => {
+                
+            });
+        }
+    }
     /**
      * Component render
      */
     public render(): React.ReactElement<ISpupsProperySyncProps> {
+        const { templateLib } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
-            azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties } = this.state;
+            azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
+        const showConfig = !templateLib ? true : false;
         return (
             <div className={styles.spupsProperySync}>
                 <div className={styles.container}>
                     <div className={styles.row}>
                         <div className={styles.column}>
-                            <PropertyMappingList mappingProperties={propertyMappings} helper={this.helper} disabled={showUploadProgress} />
-                            <div>
-                                <FilePicker
-                                    accepts={[".json", ".csv"]}
-                                    buttonIcon="FileImage"
-                                    onSave={this._onSaveTemplate}
-                                    onChanged={this._onChangeTemplate}
-                                    context={this.props.context}
-                                    disabled={showUploadProgress}
-                                    buttonLabel={"Select Data file"}
-                                    hideLinkUploadTab={true}
-                                    hideOrganisationalAssetTab={true}
-                                    hideWebSearchTab={true}
-                                />
-                            </div>
-                            {fileurl &&
-                                <div style={{ color: "black" }}>
-                                    <FileTypeIcon type={IconType.font} path={fileurl} />
-                                    &nbsp;{uploadedTemplate.fileName}
-                                </div>
-                            }
-                            {showUploadData &&
-                                <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress} />
-                            }
-                            {showUploadProgress && <Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" />}
-                            <UPPropertyData items={uploadedData} isCSV={isCSV} />
-                            <PeoplePicker
-                                context={this.props.context}
-                                titleText={strings.PPLPickerTitleText}
-                                personSelectionLimit={10}
-                                groupName={""} // Leave this blank in case you want to filter from all users
-                                showtooltip={false}
-                                isRequired={false}
-                                selectedItems={this._getPeoplePickerItems}
-                                showHiddenInUI={false}
-                                principalTypes={[PrincipalType.User]}
-                                resolveDelay={500} />
-                            {reloadGetProperties ? (
-                                <>
-                                    {selectedUsers.length > 0 &&
-                                        <div>
-                                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListChanges} />
-                                        </div>
-                                    }
-                                    {selectedUsers.length <= 0 &&
-                                        <div>
-                                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} />
-                                        </div>
-                                    }
-                                </>
+                            {showConfig ? (
+                                <Placeholder iconName='Edit'
+                                    iconText={strings.PlaceholderIconText}
+                                    description={strings.PlaceholderDescription}
+                                    buttonLabel={strings.PlaceholderButtonLabel}
+                                    onConfigure={this.props.openPropertyPane} />
                             ) : (
-                                    <></>
-                                )
-                            }
-                            {selectedUsers && selectedUsers.length > 0 &&
-                                <div style={{ marginTop: "5px" }}>
-                                    <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons} />
-                                    <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable} disabled={disablePropsButtons} />
-                                    {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
-                                </div>
-                            }
-                            {manualPropertyData && manualPropertyData.length > 0 &&
-                                <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties} />
-                            }
-                            {azurePropertyData && azurePropertyData.length > 0 &&
-                                <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />
-                            }
+                                    <>
+                                        <div>
+                                            <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
+                                                <PivotItem headerText="All" itemKey="0" itemIcon="ViewAll"></PivotItem>
+                                                <PivotItem headerText="Without Expiry Date" itemKey="1" itemIcon="PrimaryCalendar"></PivotItem>
+                                                <PivotItem headerText="Expiry Date Passed" itemKey="-1" itemIcon="PrimaryCalendar"></PivotItem>
+                                                <PivotItem headerText="7 days" itemKey="7" itemIcon="Calendar"></PivotItem>
+                                                <PivotItem headerText="30 days" itemKey="30" itemIcon="Calendar"></PivotItem>
+                                                <PivotItem headerText="90 days" itemKey="90" itemIcon="Calendar"></PivotItem>
+                                            </Pivot>
+                                            <div style={{float: "right"}}>
+                                                <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} disabled={showUploadProgress} />
+                                            </div>
+                                        </div>                                        
+                                        <div>
+                                            <FilePicker
+                                                accepts={[".json", ".csv"]}
+                                                buttonIcon="FileImage"
+                                                onSave={this._onSaveTemplate}
+                                                onChanged={this._onChangeTemplate}
+                                                context={this.props.context}
+                                                disabled={showUploadProgress}
+                                                buttonLabel={"Select Data file"}
+                                                hideLinkUploadTab={true}
+                                                hideOrganisationalAssetTab={true}
+                                                hideWebSearchTab={true}
+                                            />
+                                        </div>
+                                        {fileurl &&
+                                            <div style={{ color: "black" }}>
+                                                <FileTypeIcon type={IconType.font} path={fileurl} />
+                                                &nbsp;{uploadedTemplate.fileName}
+                                            </div>
+                                        }
+                                        {showUploadData &&
+                                            <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress} />
+                                        }
+                                        {showUploadProgress && <Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" />}
+                                        <UPPropertyData items={uploadedData} isCSV={isCSV} />
+                                        <PeoplePicker
+                                            context={this.props.context}
+                                            titleText={strings.PPLPickerTitleText}
+                                            personSelectionLimit={10}
+                                            groupName={""} // Leave this blank in case you want to filter from all users
+                                            showtooltip={false}
+                                            isRequired={false}
+                                            selectedItems={this._getPeoplePickerItems}
+                                            showHiddenInUI={false}
+                                            principalTypes={[PrincipalType.User]}
+                                            resolveDelay={500} />
+                                        {reloadGetProperties ? (
+                                            <>
+                                                {selectedUsers.length > 0 &&
+                                                    <div>
+                                                        <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListChanges} />
+                                                    </div>
+                                                }
+                                                {selectedUsers.length <= 0 &&
+                                                    <div>
+                                                        <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} />
+                                                    </div>
+                                                }
+                                            </>
+                                        ) : (
+                                                <></>
+                                            )
+                                        }
+                                        {selectedUsers && selectedUsers.length > 0 &&
+                                            <div style={{ marginTop: "5px" }}>
+                                                <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons} />
+                                                <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable} disabled={disablePropsButtons} />
+                                                {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
+                                            </div>
+                                        }
+                                        {manualPropertyData && manualPropertyData.length > 0 &&
+                                            <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties} />
+                                        }
+                                        {azurePropertyData && azurePropertyData.length > 0 &&
+                                            <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />
+                                        }
+                                    </>
+                                )}
                         </div>
                     </div>
                 </div>

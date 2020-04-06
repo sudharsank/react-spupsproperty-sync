@@ -43,11 +43,20 @@ export default class SPHelper implements ISPHelper {
     private Lst_PropsMapping = 'Sync Properties Mapping';
     private Lst_SyncJobs = 'UPS Sync Jobs';
 
-    constructor(siteurl: string, tenantname: string, domainname: string, relativeurl: string) {
+    constructor(siteurl: string, tenantname: string, domainname: string, relativeurl: string, libid: string) {
         this.SiteURL = siteurl;
         this.SiteRelativeURL = relativeurl;
         this.AdminSiteURL = `https://${tenantname}-admin.${domainname}`;
         this._web = sp.web;
+        this.getTemplateLibraryInfo(libid);
+    }
+
+    public getTemplateLibraryInfo = async (libid: string) => {
+        if(libid) {
+            let libinfo = await this._web.lists.getById(libid).select('Title').get();
+            this.SyncTemplateFilePath = `/${libinfo.Title}/SyncJobTemplate/`;
+            this.SyncUploadFilePath = `/${libinfo.Title}/UPSDataToProcess/`;
+        }        
     }
 
     public demoFunction = async () => {
