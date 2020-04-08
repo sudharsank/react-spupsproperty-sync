@@ -13,7 +13,7 @@ import { graph } from "@pnp/graph";
 import "@pnp/graph/users";
 import * as moment from 'moment';
 import { IWeb } from "@pnp/sp/webs";
-import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType } from "./IModel";
+import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType, SyncType, JobStatus } from "./IModel";
 import * as _ from 'lodash';
 
 
@@ -25,6 +25,7 @@ export interface ISPHelper {
     getPropertyMappingsTemplate: (propertyMappings: IPropertyMappings[]) => Promise<any>;
     addFilesToFolder: (filename: string, fileContent: any) => void;
     getFileContent: (filepath: string, contentType: FileContentType) => void;
+    createSyncItem: (syncType: SyncType) => Promise<number>;
 
     runAzFunction: (httpClient: HttpClient, inputData: any) => void;
 }
@@ -182,6 +183,20 @@ export default class SPHelper implements ISPHelper {
             DisplayName: currentUserInfo.Title,
             Picture: '/_layouts/15/userphoto.aspx?size=S&username=' + currentUserInfo.UserPrincipalName,
         });
+    }
+    /**
+     * Create a sync item
+     */
+    public createSyncItem = async (syncType: SyncType): Promise<number> => {
+        let returnVal: number = 0;
+        let itemAdded = await this._web.lists.getByTitle(this.Lst_SyncJobs).items.add({
+            Title: `SyncJob_${moment().format("DD_MM_YYYY_hh_mm")}`,
+            Status: JobStatus.Submitted.toString(),
+            SyncType: syncType.toString()
+        });
+        console.log(itemAdded);
+        returnVal = itemAdded.data.Id;
+        return returnVal;
     }
 
     protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";

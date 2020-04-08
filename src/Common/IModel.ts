@@ -5,13 +5,27 @@ export enum FileContentType {
 	JSON
 }
 
-export enum MessageScope{
-    Success,
-    Failure,
-    Warning,
+export enum MessageScope {
+	Success,
+	Failure,
+	Warning,
 	Info,
 	Blocked,
 	SevereWarning
+}
+
+export enum SyncType {
+	Manual = "Manual",
+	Azure = "Azure",
+	Template = "Template"
+}
+
+export enum JobStatus {
+	Submitted = "Submitted",
+	InProgress = "In-Progress",
+	Completed = "Completed",
+	CompletedWithError = "Completed With Error",
+	Error = "Error"
 }
 
 export interface IUserInfo {

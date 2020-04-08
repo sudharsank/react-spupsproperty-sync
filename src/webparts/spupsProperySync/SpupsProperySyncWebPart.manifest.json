@@ -15,7 +15,7 @@
     "description": { "default": "Sync Azure AD properties to SharePoint User Profile Properties." },
     "officeFabricIconFontName": "UserSync",
     "properties": {
-      "description": "SPUPSProperySync"
+      
     }
   }]
 }

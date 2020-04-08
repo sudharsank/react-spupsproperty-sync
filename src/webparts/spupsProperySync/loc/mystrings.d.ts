@@ -1,11 +1,11 @@
 declare interface ISpupsProperySyncWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
-  DescriptionFieldLabel: string;
 
   PlaceholderIconText: string;
   PlaceholderDescription: string;
   PlaceholderButtonLabel: string;
+  DefaultAppTitle: string;
 
   GenerateTemplateLoader: string;
   UploadDataToSyncLoader: string;

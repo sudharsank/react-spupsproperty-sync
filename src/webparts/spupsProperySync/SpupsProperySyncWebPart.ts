@@ -18,6 +18,7 @@ import * as jQuery from 'jquery';
 export interface ISpupsProperySyncWebPartProps {
     context: WebPartContext;
     templateLib: string;
+    appTitle: string;
 }
 
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
@@ -38,6 +39,11 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
             {
                 context: this.context,
                 templateLib: this.properties.templateLib,
+                displayMode: this.displayMode,
+                appTitle: this.properties.appTitle,
+                updateProperty: (value: string) => {
+                    this.properties.appTitle = value;
+                },
                 openPropertyPane: this.openPropertyPane
             }
         );
