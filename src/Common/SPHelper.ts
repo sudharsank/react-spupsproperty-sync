@@ -194,7 +194,6 @@ export default class SPHelper implements ISPHelper {
             Status: JobStatus.Submitted.toString(),
             SyncType: syncType.toString()
         });
-        console.log(itemAdded);
         returnVal = itemAdded.data.Id;
         return returnVal;
     }

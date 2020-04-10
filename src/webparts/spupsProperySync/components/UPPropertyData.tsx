@@ -5,6 +5,7 @@ import { DetailsList, buildColumns, IColumn, DetailsListLayoutMode, ConstrainMod
 import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
 import * as csv from 'csvtojson';
+import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
 const jsonData: any = `[
     {
@@ -31,6 +32,7 @@ GradyA@o365practice.onmicrosoft.com,dept2,Title 2,Office 2,234233423,343434,2342
 export interface IUPPropertyDataProps {
 	items: any;
 	isCSV: boolean;
+	UpdateSPForBulkUsers: (data: any[]) => void;
 }
 
 export interface IUPPropertyDataState {
@@ -64,7 +66,7 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 	}
 
 	private _buildColumns = (columns: string[]): IColumn[] => {
-		this.setState({emptyValues: false});
+		this.setState({ emptyValues: false });
 		let cols: IColumn[] = [];
 		if (columns && columns.length > 0) {
 			columns.map((col: string) => {
@@ -72,12 +74,12 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 					cols.push({ key: col, name: col, fieldName: col, minWidth: 300, maxWidth: 300 } as IColumn);
 				} else {
 					cols.push({
-						key: col, name: col, fieldName: col,
+						key: col, name: col, fieldName: col, minWidth: 150,
 						onRender: (item: any, index: number, column: IColumn) => {
 							if (item[col]) {
 								return (<div>{item[col]}</div>);
 							} else {
-								this.setState({emptyValues: true});
+								this.setState({ emptyValues: true });
 								return (<div className={styles.emptyData}>{strings.EmptyDataText}</div>);
 							}
 						}
@@ -111,6 +113,10 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 		});
 	}
 
+	private _updatePropsForBulkUsers = () => {
+		this.props.UpdateSPForBulkUsers(this.state.items);
+	}
+
 	public render(): JSX.Element {
 		const { items, columns, emptyValues } = this.state;
 		//console.log(this.emptyValues);
@@ -120,17 +126,22 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 					<MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyDataWarningMsg} />
 				}
 				{items && items.length > 0 &&
-					<DetailsList
-						items={items}
-						setKey="set"
-						columns={columns}
-						compact={true}
-						layoutMode={DetailsListLayoutMode.justified}
-						constrainMode={ConstrainMode.unconstrained}
-						isHeaderVisible={true}
-						selectionMode={SelectionMode.none}
-						enableShimmer={true}
-						className={styles.uppropertylist} />
+					<>
+						<DetailsList
+							items={items}
+							setKey="set"
+							columns={columns}
+							compact={true}
+							layoutMode={DetailsListLayoutMode.justified}
+							constrainMode={ConstrainMode.unconstrained}
+							isHeaderVisible={true}
+							selectionMode={SelectionMode.none}
+							enableShimmer={true}
+							className={styles.uppropertylist} />
+						<div style={{ padding: "10px" }}>
+							<PrimaryButton text={strings.BtnUpdateUserProps} onClick={this._updatePropsForBulkUsers} style={{ marginRight: '5px' }} />
+						</div>
+					</>
 				}
 			</div>
 		);

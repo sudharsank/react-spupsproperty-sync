@@ -18,7 +18,8 @@ import PropertyMappingList from './PropertyMapping/PropertyMappingList';
 import UPPropertyData from './UPPropertyData';
 import ManualPropertyUpdate from './ManualPropertyUpdate';
 import AzurePropertyView from './AzurePropertyView';
-import * as _ from 'lodash';
+import { map } from 'lodash';
+import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
 import { DisplayMode } from '@microsoft/sp-core-library';
 
@@ -38,6 +39,10 @@ export interface ISpupsProperySyncState {
     showUploadData: boolean;
     showUploadProgress: boolean;
     showPropsLoader: boolean;
+    updatePropsLoader_Manual: boolean;
+    updatePropsLoader_Azure: boolean;
+    updatePropsLoader_Bulk: boolean;
+    clearData: boolean;
     disablePropsButtons: boolean;
     uploadedData?: any;
     isCSV: boolean;
@@ -63,6 +68,10 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             showUploadData: false,
             showUploadProgress: false,
             showPropsLoader: false,
+            updatePropsLoader_Manual: false,
+            updatePropsLoader_Azure: false,
+            updatePropsLoader_Bulk: false,
+            clearData: false,
             disablePropsButtons: false,
             isCSV: false,
             selectedUsers: [],
@@ -70,7 +79,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             azurePropertyData: [],
             reloadGetProperties: false,
             helper: null,
-            selectedMenu: '4'
+            selectedMenu: '0'
         };
     }
     /**
@@ -81,7 +90,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
         propertyMappings.map(prop => { prop.IsIncluded = true; });
         this.setState({ propertyMappings });
-        console.log("pageContext: ", this.props.context.pageContext);
+        //console.log("pageContext: ", this.props.context.pageContext);
     }
     public componentDidUpdate = (prevProps: ISpupsProperySyncProps) => {
         if (prevProps.templateLib !== this.props.templateLib) {
@@ -107,6 +116,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let filecontent: any = null;
         if (uploadedTemplate && uploadedTemplate.fileName) {
             let ext: string = uploadedTemplate.fileName.split('.').pop();
+            let filename: string = `${uploadedTemplate.fileNameWithoutExtension}_${moment().format("MM-DD-YYYY-HH-mm-ss")}.${ext}`;
             if (uploadedTemplate.fileAbsoluteUrl && null !== uploadedTemplate.fileAbsoluteUrl) {
                 let filerelativeurl: string = "";
                 if (uploadedTemplate.fileAbsoluteUrl.indexOf(this.props.context.pageContext.legacyPageContext.webAbsoluteUrl) >= 0) {
@@ -114,7 +124,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                         this.props.context.pageContext.legacyPageContext.webServerRelativeUrl);
                 }
                 filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.Blob);
-                await this.helper.addDataFilesToFolder(filecontent, uploadedTemplate.fileName);
+                await this.helper.addDataFilesToFolder(filecontent, filename);
                 if (ext.toLocaleLowerCase() == "csv") {
                     filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.Text);
                 } else if (ext.toLocaleLowerCase() == "json") {
@@ -126,7 +136,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 let filereader = new FileReader();
                 filereader.readAsBinaryString(dataToSync);
                 filereader.onload = async () => {
-                    let dataUploaded = await this.helper.addDataFilesToFolder(filereader.result, uploadedTemplate.fileName);
+                    let dataUploaded = await this.helper.addDataFilesToFolder(filereader.result, filename);
                     if (ext.toLocaleLowerCase() == "csv") {
                         filecontent = await dataUploaded.file.getText();
                     } else if (ext.toLocaleLowerCase() == "json") {
@@ -141,6 +151,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Triggers when the users are selected for manual update
      */
     private _getPeoplePickerItems = (items: any[]) => {
+        console.log(items);
         let reloadGetProperties: boolean = false;
         if (this.state.selectedUsers.length > items.length) {
             if (this.state.manualPropertyData.length > 0 || this.state.azurePropertyData.length > 0) {
@@ -152,6 +163,11 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 this.state.manualPropertyData.length > 0 ? this._getManualPropertyTable() : this._getAzurePropertyTable();
             }
         });
+    }
+    private _getSelectedUsersLoginNames = (items: any[]): string[] => {
+        let retUsers: string[] = [];
+        retUsers = map(items, (o) => { return o.loginName.split('|')[2]; });
+        return retUsers;
     }
     /**
      * Display the inline editing table to edit the properties for manual update
@@ -184,7 +200,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ disablePropsButtons: true, showPropsLoader: true });
         const { propertyMappings, selectedUsers } = this.state;
         let includedProperties: IPropertyMappings[] = propertyMappings.filter((o) => { return o.IsIncluded; });
-        let selectFields: string = "id, userPrincipalName, displayName, " + _.map(includedProperties, 'AzProperty').join(',');
+        let selectFields: string = "id, userPrincipalName, displayName, " + map(includedProperties, 'AzProperty').join(',');
         let tempQuery: string[] = []; let filterQuery: string = ``;
         if (selectedUsers && selectedUsers.length > 0) {
             selectedUsers.map(user => {
@@ -213,17 +229,33 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Update with manual properties
      */
     private _updateSPWithManualProperties = async (data: any[]) => {
-        let itemID = await this.helper.createSyncItem(SyncType.Manual);
-        let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        this.setState({ updatePropsLoader_Manual: true });
+        // let itemID = await this.helper.createSyncItem(SyncType.Manual);
+        // let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
+        // this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        setTimeout(() => {
+            this.setState({ updatePropsLoader_Manual: false, clearData: true, selectedUsers: [], manualPropertyData: [] });
+        }, 3000);
     }
     /**
      * Update with azure properties
      */
     private _updateSPWithAzureProperties = async (data: any[]) => {
+        this.setState({ updatePropsLoader_Azure: true });
         let itemID = await this.helper.createSyncItem(SyncType.Azure);
         let finalJson = this._prepareJSONForAzFunc(data, true, itemID);
         this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        this.setState({ updatePropsLoader_Azure: false, clearData: true });
+    }
+    /**
+     * Update with csv or json file
+     */
+    private _updateSPForBulkUsers = async (data: any[]) => {
+        this.setState({ updatePropsLoader_Bulk: true });
+        let itemID = await this.helper.createSyncItem(SyncType.Template);
+        let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        this.setState({ updatePropsLoader_Bulk: false, clearData: true });
     }
     /**
      * Prepare JSON based on the manual or az data to call AZ FUNC.
@@ -288,10 +320,12 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     public render(): React.ReactElement<ISpupsProperySyncProps> {
         const { templateLib, displayMode, appTitle } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
-            azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu } = this.state;
+            azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu, updatePropsLoader_Manual, updatePropsLoader_Azure,
+            updatePropsLoader_Bulk, clearData } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         const showConfig = !templateLib ? true : false;
+        const headerButtonProps = { 'disabled': showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk };
         return (
             <div className={styles.spupsProperySync}>
                 <div className={styles.container}>
@@ -309,15 +343,15 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                     <>
                                         <div>
                                             <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
-                                                <PivotItem headerText="Manual or Azure Property Sync" itemKey="0" itemIcon="SchoolDataSyncLogo"
-                                                    headerButtonProps={{ 'disabled': showUploadProgress }} className={showUploadProgress ? styles.disabledMenu : styles.enabledMenu}></PivotItem>
-                                                <PivotItem headerText="Bulk Sync" itemKey="1" itemIcon="BulkUpload"></PivotItem>
-                                                <PivotItem headerText="Uploaded Content Files" itemKey="2" itemIcon="StackIndicator"></PivotItem>
-                                                <PivotItem headerText="Templates Generated" itemKey="3" itemIcon="FileTemplate"></PivotItem>
-                                                <PivotItem headerText="Sync Jobs" itemKey="4" itemIcon="SyncStatus"></PivotItem>
+                                                <PivotItem headerText="Manual or Azure Property Sync" itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
+                                                <PivotItem headerText="Bulk Sync" itemKey="1" itemIcon="BulkUpload" headerButtonProps={headerButtonProps}></PivotItem>
+                                                <PivotItem headerText="Uploaded Content Files" itemKey="2" itemIcon="StackIndicator" headerButtonProps={headerButtonProps}></PivotItem>
+                                                <PivotItem headerText="Templates Generated" itemKey="3" itemIcon="FileTemplate" headerButtonProps={headerButtonProps}></PivotItem>
+                                                <PivotItem headerText="Sync Jobs" itemKey="4" itemIcon="SyncStatus" headerButtonProps={headerButtonProps}></PivotItem>
                                             </Pivot>
                                             <div style={{ float: "right" }}>
-                                                <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} disabled={showUploadProgress} />
+                                                <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper}
+                                                    disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk} />
                                             </div>
                                         </div>
                                         {selectedMenu == "0" &&
@@ -332,7 +366,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                     selectedItems={this._getPeoplePickerItems}
                                                     showHiddenInUI={false}
                                                     principalTypes={[PrincipalType.User]}
-                                                    resolveDelay={500} />
+                                                    resolveDelay={500}
+                                                    defaultSelectedUsers={selectedUsers.length > 0 ? this._getSelectedUsersLoginNames(selectedUsers) : []} />
                                                 {reloadGetProperties ? (
                                                     <>
                                                         {selectedUsers.length > 0 &&
@@ -340,7 +375,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                                 <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListChanges} />
                                                             </div>
                                                         }
-                                                        {selectedUsers.length <= 0 &&
+                                                        {selectedUsers.length <= 0 && !clearData &&
                                                             <div>
                                                                 <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} />
                                                             </div>
@@ -358,7 +393,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                     </div>
                                                 }
                                                 {manualPropertyData && manualPropertyData.length > 0 &&
-                                                    <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties} />
+                                                    <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties}
+                                                        showProgress={updatePropsLoader_Manual} clearData={clearData} />
                                                 }
                                                 {azurePropertyData && azurePropertyData.length > 0 &&
                                                     <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />
@@ -382,16 +418,20 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                     />
                                                 </div>
                                                 {fileurl &&
-                                                    <div style={{ color: "black" }}>
+                                                    <div style={{ color: "black", padding: '10px' }}>
                                                         <FileTypeIcon type={IconType.font} path={fileurl} />
                                                 &nbsp;{uploadedTemplate.fileName}
                                                     </div>
                                                 }
                                                 {showUploadData &&
-                                                    <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress} />
+                                                    <div style={{ padding: '10px', width: 'auto', display: 'inline-block' }}>
+                                                        <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress} />
+                                                        {showUploadProgress &&
+                                                            <div style={{ paddingLeft: '10px', display: 'inline-block' }}><Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" /></div>
+                                                        }
+                                                    </div>
                                                 }
-                                                {showUploadProgress && <Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" />}
-                                                <UPPropertyData items={uploadedData} isCSV={isCSV} />
+                                                <UPPropertyData items={uploadedData} isCSV={isCSV} UpdateSPForBulkUsers={this._updateSPForBulkUsers} />
                                             </div>
                                         }
                                         {selectedMenu == "2" &&

@@ -1,24 +1,32 @@
 import * as React from 'react';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import * as strings from 'SpupsProperySyncWebPartStrings';
+import styles from './SpupsProperySync.module.scss';
 import EditableTable from './DynamicTable/EditableTable';
 import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
+import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 
 export interface IManualPropertyUpdateProps {
     userProperties: any;
+    showProgress: boolean;
+    clearData: boolean;
     UpdateSPUserWithManualProps: (data: any) => void;
 }
 
 export interface IManualPropertyUpdateState {
     data: any;
+    showProgress: boolean;
+    message: string;
 }
 
 export default class ManualPropertyUpdate extends React.Component<IManualPropertyUpdateProps, IManualPropertyUpdateState> {
     constructor(props: IManualPropertyUpdateProps) {
         super(props);
         this.state = {
-            data: []
+            data: [],
+            showProgress: false,
+            message: ''
         };
     }
 
@@ -29,6 +37,12 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
     public componentDidUpdate = (prevProps: IManualPropertyUpdateProps) => {
         if (prevProps.userProperties !== this.props.userProperties) {
             this.setState({ data: this.props.userProperties });
+        }
+        if (prevProps.showProgress !== this.props.showProgress) {
+            this.setState({ showProgress: this.props.showProgress });
+        }
+        if (prevProps.clearData !== this.props.clearData) {
+            if (this.props.clearData) this.setState({ data: [] });
         }
     }
 
@@ -61,7 +75,7 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
     }
 
     public render(): JSX.Element {
-        const { data } = this.state;
+        const { data, showProgress } = this.state;
         return (
             <div>
                 {(data && data.length > 0) ? (
@@ -69,13 +83,18 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
                         <EditableTable onTableUpdate={this.handlePropertyTable.bind(this)} onRowDel={this.handleRowDel.bind(this)}
                             data={data} />
                         <div style={{ marginTop: "5px" }}>
-                            <PrimaryButton text={strings.BtnUpdateUserProps} onClick={this.updateWithManualProperty} style={{ marginRight: '5px' }} />
+                            <PrimaryButton text={strings.BtnUpdateUserProps} onClick={this.updateWithManualProperty} style={{ marginRight: '5px' }} disabled={showProgress} />
+                            {showProgress && <Spinner className={styles.generateTemplateLoader} label={strings.PropsUpdateLoader} ariaLive="assertive" labelPosition="right" />}
                         </div>
                     </>
                 ) : (
-                        <div>
-                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyTable} />
-                        </div>
+                        <>
+                            {this.props.clearData ? (
+                                <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
+                            ) : (
+                                    <div><MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyTable} /></div>
+                                )}
+                        </>
                     )
                 }
             </div>

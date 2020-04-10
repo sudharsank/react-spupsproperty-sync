@@ -10,6 +10,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   GenerateTemplateLoader: string;
   UploadDataToSyncLoader: string;
   PropsLoader: string;
+  PropsUpdateLoader: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;
@@ -31,6 +32,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptyTable: string;
   UserListChanges: string;
   UserListEmpty: string;
+  JobIntializedSuccess: string;
 
   PropTemplateLibLabel: string;
 }
