@@ -81,7 +81,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
         propertyMappings.map(prop => { prop.IsIncluded = true; });
         this.setState({ propertyMappings });
-        console.log("pageContext: ",this.props.context.pageContext);
+        console.log("pageContext: ", this.props.context.pageContext);
     }
     public componentDidUpdate = (prevProps: ISpupsProperySyncProps) => {
         if (prevProps.templateLib !== this.props.templateLib) {
@@ -213,20 +213,16 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Update with manual properties
      */
     private _updateSPWithManualProperties = async (data: any[]) => {
-        console.log("_updateSPWithManualProperties: ", data);
         let itemID = await this.helper.createSyncItem(SyncType.Manual);
         let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        console.log("Manual Final Json: ", finalJson);        
         this.helper.runAzFunction(this.props.context.httpClient, finalJson);
     }
     /**
      * Update with azure properties
      */
     private _updateSPWithAzureProperties = async (data: any[]) => {
-        console.log("_updateSPWithAzureProperties: ", data);
         let itemID = await this.helper.createSyncItem(SyncType.Azure);
         let finalJson = this._prepareJSONForAzFunc(data, true, itemID);
-        console.log("Azure Final Json: ", finalJson);        
         this.helper.runAzFunction(this.props.context.httpClient, finalJson);
     }
     /**
@@ -313,7 +309,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                     <>
                                         <div>
                                             <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
-                                                <PivotItem headerText="Manual or Azure Property Sync" itemKey="0" itemIcon="SchoolDataSyncLogo"></PivotItem>
+                                                <PivotItem headerText="Manual or Azure Property Sync" itemKey="0" itemIcon="SchoolDataSyncLogo"
+                                                    headerButtonProps={{ 'disabled': showUploadProgress }} className={showUploadProgress ? styles.disabledMenu : styles.enabledMenu}></PivotItem>
                                                 <PivotItem headerText="Bulk Sync" itemKey="1" itemIcon="BulkUpload"></PivotItem>
                                                 <PivotItem headerText="Uploaded Content Files" itemKey="2" itemIcon="StackIndicator"></PivotItem>
                                                 <PivotItem headerText="Templates Generated" itemKey="3" itemIcon="FileTemplate"></PivotItem>
@@ -367,7 +364,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                     <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />
                                                 }
                                             </div>
-                                        }                                        
+                                        }
                                         {selectedMenu == "1" &&
                                             <div className={css(styles.menuContent)}>
                                                 <div>
