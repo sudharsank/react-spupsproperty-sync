@@ -15,15 +15,13 @@ export interface IManualPropertyUpdateProps {
 
 export interface IManualPropertyUpdateState {
     data: any;
-    showProgress: boolean;
 }
 
 export default class ManualPropertyUpdate extends React.Component<IManualPropertyUpdateProps, IManualPropertyUpdateState> {
     constructor(props: IManualPropertyUpdateProps) {
         super(props);
         this.state = {
-            data: [],
-            showProgress: false,
+            data: []
         };
     }
 
@@ -34,9 +32,6 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
     public componentDidUpdate = (prevProps: IManualPropertyUpdateProps) => {
         if (prevProps.userProperties !== this.props.userProperties) {
             this.setState({ data: this.props.userProperties });
-        }
-        if (prevProps.showProgress !== this.props.showProgress) {
-            this.setState({ showProgress: this.props.showProgress });
         }
     }
 
@@ -69,7 +64,8 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
     }
 
     public render(): JSX.Element {
-        const { data, showProgress } = this.state;
+        const { data } = this.state;
+        const { showProgress } = this.props;
         return (
             <div>
                 {(data && data.length > 0) ? (

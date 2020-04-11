@@ -30,6 +30,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptyDataText: string;
   EmptyDataWarningMsg: string;
   EmptyTable: string;
+  EmptyFile: string;
   UserListChanges: string;
   UserListEmpty: string;
   JobIntializedSuccess: string;

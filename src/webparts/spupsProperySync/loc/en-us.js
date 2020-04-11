@@ -31,6 +31,7 @@ define([], function() {
     EmptyDataText: "Empty!",
     EmptyDataWarningMsg: "Columns with empty values are not considered for update!",
     EmptyTable: "Sorry, no data to be displayed!",
+    EmptyFile: "Oops, the file is empty",
     UserListChanges: "Changes in user list, please remove the user from the table manually or reinitialize or get the Azure properties again!",
     UserListEmpty: "Since all the users have been removed, the table has been cleared!",
     JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!",

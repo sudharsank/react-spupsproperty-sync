@@ -28,6 +28,8 @@ export interface ISpupsProperySyncProps {
     templateLib: string;
     displayMode: DisplayMode;
     appTitle: string;
+    AzFuncUrl: string;
+    UseCert: boolean;
     openPropertyPane: () => void;
     updateProperty: (value: string) => void;
 }
@@ -108,46 +110,6 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ helper: this.helper });
     }
     /**
-     * Uploading data file and displaying the contents of the file
-     */
-    private _uploadDataToSync = async () => {
-        this.setState({ showUploadProgress: true });
-        const { uploadedTemplate } = this.state;
-        let filecontent: any = null;
-        if (uploadedTemplate && uploadedTemplate.fileName) {
-            let ext: string = uploadedTemplate.fileName.split('.').pop();
-            let filename: string = `${uploadedTemplate.fileNameWithoutExtension}_${moment().format("MM-DD-YYYY-HH-mm-ss")}.${ext}`;
-            if (uploadedTemplate.fileAbsoluteUrl && null !== uploadedTemplate.fileAbsoluteUrl) {
-                let filerelativeurl: string = "";
-                if (uploadedTemplate.fileAbsoluteUrl.indexOf(this.props.context.pageContext.legacyPageContext.webAbsoluteUrl) >= 0) {
-                    filerelativeurl = uploadedTemplate.fileAbsoluteUrl.replace(this.props.context.pageContext.legacyPageContext.webAbsoluteUrl,
-                        this.props.context.pageContext.legacyPageContext.webServerRelativeUrl);
-                }
-                filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.Blob);
-                await this.helper.addDataFilesToFolder(filecontent, filename);
-                if (ext.toLocaleLowerCase() == "csv") {
-                    filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.Text);
-                } else if (ext.toLocaleLowerCase() == "json") {
-                    filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.JSON);
-                }
-                this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
-            } else {
-                let dataToSync = await uploadedTemplate.downloadFileContent();
-                let filereader = new FileReader();
-                filereader.readAsBinaryString(dataToSync);
-                filereader.onload = async () => {
-                    let dataUploaded = await this.helper.addDataFilesToFolder(filereader.result, filename);
-                    if (ext.toLocaleLowerCase() == "csv") {
-                        filecontent = await dataUploaded.file.getText();
-                    } else if (ext.toLocaleLowerCase() == "json") {
-                        filecontent = await dataUploaded.file.getJSON();
-                    }
-                    this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
-                };
-            }
-        }
-    }
-    /**
      * Triggers when the users are selected for manual update
      */
     private _getPeoplePickerItems = (items: any[]) => {
@@ -163,6 +125,9 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             }
         });
     }
+    /**
+     * Set the defaultusers property for people picker control, this is used when clearing the data.
+     */
     private _getSelectedUsersLoginNames = (items: any[]): string[] => {
         let retUsers: string[] = [];
         retUsers = map(items, (o) => { return o.loginName.split('|')[2]; });
@@ -216,13 +181,53 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * On selecting the data file for update
      */
     private _onSaveTemplate = (uploadedTemplate: IFilePickerResult) => {
-        this.setState({ uploadedTemplate, showUploadData: true });
+        this.setState({ uploadedTemplate, showUploadData: true, clearData: false });
     }
     /**
      * On changing the data file for update
      */
     private _onChangeTemplate = (uploadedTemplate: IFilePickerResult) => {
-        this.setState({ uploadedTemplate, showUploadData: true });
+        this.setState({ uploadedTemplate, showUploadData: true, clearData: false });
+    }
+    /**
+     * Uploading data file and displaying the contents of the file
+     */
+    private _uploadDataToSync = async () => {
+        this.setState({ showUploadProgress: true });
+        const { uploadedTemplate } = this.state;
+        let filecontent: any = null;
+        if (uploadedTemplate && uploadedTemplate.fileName) {
+            let ext: string = uploadedTemplate.fileName.split('.').pop();
+            let filename: string = `${uploadedTemplate.fileNameWithoutExtension}_${moment().format("MM-DD-YYYY-HH-mm-ss")}.${ext}`;
+            if (uploadedTemplate.fileAbsoluteUrl && null !== uploadedTemplate.fileAbsoluteUrl) {
+                let filerelativeurl: string = "";
+                if (uploadedTemplate.fileAbsoluteUrl.indexOf(this.props.context.pageContext.legacyPageContext.webAbsoluteUrl) >= 0) {
+                    filerelativeurl = uploadedTemplate.fileAbsoluteUrl.replace(this.props.context.pageContext.legacyPageContext.webAbsoluteUrl,
+                        this.props.context.pageContext.legacyPageContext.webServerRelativeUrl);
+                }
+                filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.Blob);
+                await this.helper.addDataFilesToFolder(filecontent, filename);
+                if (ext.toLocaleLowerCase() == "csv") {
+                    filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.Text);
+                } else if (ext.toLocaleLowerCase() == "json") {
+                    filecontent = await this.helper.getFileContent(filerelativeurl, FileContentType.JSON);
+                }
+                this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
+            } else {
+                let dataToSync = await uploadedTemplate.downloadFileContent();
+                let filereader = new FileReader();
+                filereader.readAsBinaryString(dataToSync);
+                filereader.onload = async () => {
+                    let dataUploaded = await this.helper.addDataFilesToFolder(filereader.result, filename);
+                    if (ext.toLocaleLowerCase() == "csv") {
+                        filecontent = await dataUploaded.file.getText();
+                    } else if (ext.toLocaleLowerCase() == "json") {
+                        filecontent = await dataUploaded.file.getJSON();
+                    }
+                    this.setState({ showUploadProgress: false, uploadedData: filecontent, isCSV: ext.toLocaleLowerCase() == "csv" });
+                };
+            }
+        }
     }
     /**
      * Update with manual properties
@@ -231,7 +236,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ updatePropsLoader_Manual: true });
         let itemID = await this.helper.createSyncItem(SyncType.Manual);
         let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl);
         this.setState({ updatePropsLoader_Manual: false, clearData: true, selectedUsers: [], manualPropertyData: [] });
     }
     /**
@@ -241,7 +246,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ updatePropsLoader_Azure: true });
         let itemID = await this.helper.createSyncItem(SyncType.Azure);
         let finalJson = this._prepareJSONForAzFunc(data, true, itemID);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        //console.log(finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl);
         this.setState({ updatePropsLoader_Azure: false, clearData: true, selectedUsers: [], azurePropertyData: [] });
     }
     /**
@@ -251,8 +257,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ updatePropsLoader_Bulk: true });
         let itemID = await this.helper.createSyncItem(SyncType.Template);
         let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
-        this.setState({ updatePropsLoader_Bulk: false, clearData: true });
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl);
+        this.setState({ updatePropsLoader_Bulk: false, clearData: true, uploadedData: null, uploadedTemplate: null, uploadedFileURL: '', showUploadData: false });
     }
     /**
      * Prepare JSON based on the manual or az data to call AZ FUNC.
@@ -263,7 +269,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             let userPropMapping = new Object();
             userPropMapping['targetSiteUrl'] = this.props.context.pageContext.legacyPageContext.webAbsoluteUrl;
             userPropMapping['targetAdminUrl'] = `https://${this.props.context.pageContext.legacyPageContext.tenantDisplayName}-admin.${this.props.context.pageContext.legacyPageContext.webDomain}`;
-            userPropMapping['usecert'] = false;
+            userPropMapping['usecert'] = this.props.UseCert ? this.props.UseCert : false;
             userPropMapping['itemId'] = itemid;
             let propValues: any[] = [];
             data.map((userprop: any) => {
@@ -309,6 +315,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                     updatePropsLoader_Manual: false, updatePropsLoader_Azure: false, clearData: false, selectedUsers: [],
                     manualPropertyData: [], azurePropertyData: []
                 });
+            } else if (item.props.itemKey == "1") {
+                this.setState({ uploadedData: null, uploadedTemplate: null, uploadedFileURL: '', showUploadData: false });
             }
             this.setState({
                 selectedMenu: item.props.itemKey
@@ -420,7 +428,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                         onSave={this._onSaveTemplate}
                                                         onChanged={this._onChangeTemplate}
                                                         context={this.props.context}
-                                                        disabled={showUploadProgress}
+                                                        disabled={showUploadProgress || updatePropsLoader_Bulk}
                                                         buttonLabel={"Select Data file"}
                                                         hideLinkUploadTab={true}
                                                         hideOrganisationalAssetTab={true}
@@ -435,13 +443,17 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                 }
                                                 {showUploadData &&
                                                     <div style={{ padding: '10px', width: 'auto', display: 'inline-block' }}>
-                                                        <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress} />
+                                                        <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress || updatePropsLoader_Bulk} />
                                                         {showUploadProgress &&
                                                             <div style={{ paddingLeft: '10px', display: 'inline-block' }}><Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" /></div>
                                                         }
                                                     </div>
                                                 }
-                                                <UPPropertyData items={uploadedData} isCSV={isCSV} UpdateSPForBulkUsers={this._updateSPForBulkUsers} />
+                                                <UPPropertyData items={uploadedData} isCSV={isCSV} UpdateSPForBulkUsers={this._updateSPForBulkUsers} showProgress={updatePropsLoader_Bulk}
+                                                    clearData={clearData} />
+                                                {clearData &&
+                                                    <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
+                                                }
                                             </div>
                                         }
                                         {selectedMenu == "2" &&

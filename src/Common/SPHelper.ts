@@ -27,7 +27,7 @@ export interface ISPHelper {
     getFileContent: (filepath: string, contentType: FileContentType) => void;
     createSyncItem: (syncType: SyncType) => Promise<number>;
 
-    runAzFunction: (httpClient: HttpClient, inputData: any) => void;
+    runAzFunction: (httpClient: HttpClient, inputData: any, azFuncUrl: string) => void;
 }
 
 export default class SPHelper implements ISPHelper {
@@ -199,7 +199,7 @@ export default class SPHelper implements ISPHelper {
     }
 
     protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";
-    public runAzFunction = async (httpClient: HttpClient, inputData: any) => {
+    public runAzFunction = async (httpClient: HttpClient, inputData: any, azFuncUrl: string) => {
         const requestHeaders: Headers = new Headers();
         requestHeaders.append("Content-type", "application/json");
         requestHeaders.append("Cache-Control", "no-cache");
@@ -207,6 +207,8 @@ export default class SPHelper implements ISPHelper {
             headers: requestHeaders,
             body: `${inputData}`
         };
+        //let response: HttpClientResponse = await httpClient.post(azFuncUrl, HttpClient.configurations.v1, postOptions);
+        /// Testing
         let response: HttpClientResponse = await httpClient.post(this.functionUrl, HttpClient.configurations.v1, postOptions);
         console.log("Actual Response: ", response);
     }

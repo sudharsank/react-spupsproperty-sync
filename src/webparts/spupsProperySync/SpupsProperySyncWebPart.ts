@@ -6,6 +6,8 @@ import {
     PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart, WebPartContext } from '@microsoft/sp-webpart-base';
+import { CalloutTriggers } from '@pnp/spfx-property-controls/lib/PropertyFieldHeader';
+import { PropertyFieldToggleWithCallout } from '@pnp/spfx-property-controls/lib/PropertyFieldToggleWithCallout';
 import { PropertyFieldListPicker, PropertyFieldListPickerOrderBy } from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
 import { sp } from '@pnp/sp';
 import { graph } from "@pnp/graph";
@@ -19,6 +21,8 @@ export interface ISpupsProperySyncWebPartProps {
     context: WebPartContext;
     templateLib: string;
     appTitle: string;
+    AzFuncUrl: string;
+    UseCert: boolean;
 }
 
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
@@ -41,6 +45,8 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                 templateLib: this.properties.templateLib,
                 displayMode: this.displayMode,
                 appTitle: this.properties.appTitle,
+                AzFuncUrl: this.properties.AzFuncUrl,
+                UseCert: this.properties.UseCert,
                 updateProperty: (value: string) => {
                     this.properties.appTitle = value;
                 },
@@ -92,6 +98,24 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                                     deferredValidationTime: 0,
                                     baseTemplate: 101,
                                     listsToExclude: ['Documents']
+                                }),
+                                PropertyPaneTextField('AzFuncUrl', {
+                                    label: 'Azure Function URL',
+                                    description: 'Azure powershell function to update the user profile properties in SharePoint UPS',
+                                    multiline: true,
+                                    placeholder: 'Azure Function URL',
+                                    resizable: true,
+                                    rows: 5,
+                                    value: this.properties.AzFuncUrl
+                                }),
+                                PropertyFieldToggleWithCallout('UseCert', {
+                                    calloutTrigger: CalloutTriggers.Hover,
+                                    key: 'UseCertFieldId',
+                                    label: 'Use Certificate for Azure Function authentication',
+                                    calloutContent: React.createElement('p', {}, 'Turn on this option to use certificate for authenticating SharePoint communication via Azure Function'),
+                                    onText: 'ON',
+                                    offText: 'OFF',
+                                    checked: this.properties.UseCert
                                 })
                             ]
                         }

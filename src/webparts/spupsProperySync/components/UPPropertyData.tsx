@@ -6,6 +6,7 @@ import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
 import * as csv from 'csvtojson';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 
 const jsonData: any = `[
     {
@@ -32,6 +33,8 @@ GradyA@o365practice.onmicrosoft.com,dept2,Title 2,Office 2,234233423,343434,2342
 export interface IUPPropertyDataProps {
 	items: any;
 	isCSV: boolean;
+	showProgress: boolean;
+	clearData: boolean;
 	UpdateSPForBulkUsers: (data: any[]) => void;
 }
 
@@ -62,6 +65,9 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 	public componentDidUpdate = (prevProps: IUPPropertyDataProps) => {
 		if (prevProps.items !== this.props.items || prevProps.isCSV !== this.props.isCSV) {
 			this._buildUploadDataList();
+		}
+		if (prevProps.clearData !== this.props.clearData) {
+			if (this.props.clearData) this.setState({ items: [] });
 		}
 	}
 
@@ -115,6 +121,7 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 
 	private _updatePropsForBulkUsers = () => {
 		this.props.UpdateSPForBulkUsers(this.state.items);
+		this.setState({ emptyValues: false });
 	}
 
 	public render(): JSX.Element {
@@ -122,10 +129,10 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 		//console.log(this.emptyValues);
 		return (
 			<div className={styles.uppropertydata}>
-				{emptyValues &&
+				{emptyValues && !this.props.clearData &&
 					<MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyDataWarningMsg} />
 				}
-				{items && items.length > 0 &&
+				{(items && items.length > 0) ? (
 					<>
 						<DetailsList
 							items={items}
@@ -139,9 +146,13 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 							enableShimmer={true}
 							className={styles.uppropertylist} />
 						<div style={{ padding: "10px" }}>
-							<PrimaryButton text={strings.BtnUpdateUserProps} onClick={this._updatePropsForBulkUsers} style={{ marginRight: '5px' }} />
+							<PrimaryButton text={strings.BtnUpdateUserProps} onClick={this._updatePropsForBulkUsers} style={{ marginRight: '5px' }} disabled={this.props.showProgress} />
+							{this.props.showProgress && <Spinner className={styles.generateTemplateLoader} label={strings.PropsUpdateLoader} ariaLive="assertive" labelPosition="right" />}
 						</div>
 					</>
+				) : (
+						<></>
+					)
 				}
 			</div>
 		);
