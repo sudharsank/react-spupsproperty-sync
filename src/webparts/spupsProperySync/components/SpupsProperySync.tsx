@@ -151,7 +151,6 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Triggers when the users are selected for manual update
      */
     private _getPeoplePickerItems = (items: any[]) => {
-        console.log(items);
         let reloadGetProperties: boolean = false;
         if (this.state.selectedUsers.length > items.length) {
             if (this.state.manualPropertyData.length > 0 || this.state.azurePropertyData.length > 0) {
@@ -230,12 +229,10 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      */
     private _updateSPWithManualProperties = async (data: any[]) => {
         this.setState({ updatePropsLoader_Manual: true });
-        // let itemID = await this.helper.createSyncItem(SyncType.Manual);
-        // let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        // this.helper.runAzFunction(this.props.context.httpClient, finalJson);
-        setTimeout(() => {
-            this.setState({ updatePropsLoader_Manual: false, clearData: true, selectedUsers: [], manualPropertyData: [] });
-        }, 3000);
+        let itemID = await this.helper.createSyncItem(SyncType.Manual);
+        let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson);
+        this.setState({ updatePropsLoader_Manual: false, clearData: true, selectedUsers: [], manualPropertyData: [] });
     }
     /**
      * Update with azure properties
@@ -307,10 +304,13 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      */
     private _onMenuClick = (item?: PivotItem, ev?: React.MouseEvent<HTMLElement, MouseEvent>): void => {
         if (item) {
+            if(item.props.itemKey == "0") {
+                this.setState({ updatePropsLoader_Manual: false, clearData: false, selectedUsers: [], manualPropertyData: [] });
+            }
             this.setState({
                 selectedMenu: item.props.itemKey
             }, () => {
-
+                
             });
         }
     }
@@ -357,6 +357,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                         {selectedMenu == "0" &&
                                             <div className={css(styles.menuContent)}>
                                                 <PeoplePicker
+                                                    disabled={disablePropsButtons || updatePropsLoader_Manual}
                                                     context={this.props.context}
                                                     titleText={strings.PPLPickerTitleText}
                                                     personSelectionLimit={10}
@@ -377,7 +378,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                         }
                                                         {selectedUsers.length <= 0 && !clearData &&
                                                             <div>
-                                                                <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} />
+                                                                <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} ShowDismiss={true} />
                                                             </div>
                                                         }
                                                     </>
@@ -387,14 +388,21 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                 }
                                                 {selectedUsers && selectedUsers.length > 0 &&
                                                     <div style={{ marginTop: "5px" }}>
-                                                        <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons} />
-                                                        <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable} disabled={disablePropsButtons} />
+                                                        <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons || updatePropsLoader_Manual} />
+                                                        <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable} disabled={disablePropsButtons || updatePropsLoader_Manual} />
                                                         {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
                                                     </div>
                                                 }
-                                                {manualPropertyData && manualPropertyData.length > 0 &&
+                                                {(manualPropertyData && manualPropertyData.length > 0) ? (
                                                     <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties}
-                                                        showProgress={updatePropsLoader_Manual} clearData={clearData} />
+                                                        showProgress={updatePropsLoader_Manual}/>
+                                                ) : (
+                                                        <>
+                                                        {clearData &&
+                                                            <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
+                                                        }
+                                                        </>
+                                                    )
                                                 }
                                                 {azurePropertyData && azurePropertyData.length > 0 &&
                                                     <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />

@@ -10,14 +10,12 @@ import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 export interface IManualPropertyUpdateProps {
     userProperties: any;
     showProgress: boolean;
-    clearData: boolean;
     UpdateSPUserWithManualProps: (data: any) => void;
 }
 
 export interface IManualPropertyUpdateState {
     data: any;
     showProgress: boolean;
-    message: string;
 }
 
 export default class ManualPropertyUpdate extends React.Component<IManualPropertyUpdateProps, IManualPropertyUpdateState> {
@@ -26,7 +24,6 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
         this.state = {
             data: [],
             showProgress: false,
-            message: ''
         };
     }
 
@@ -40,9 +37,6 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
         }
         if (prevProps.showProgress !== this.props.showProgress) {
             this.setState({ showProgress: this.props.showProgress });
-        }
-        if (prevProps.clearData !== this.props.clearData) {
-            if (this.props.clearData) this.setState({ data: [] });
         }
     }
 
@@ -88,13 +82,7 @@ export default class ManualPropertyUpdate extends React.Component<IManualPropert
                         </div>
                     </>
                 ) : (
-                        <>
-                            {this.props.clearData ? (
-                                <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
-                            ) : (
-                                    <div><MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyTable} /></div>
-                                )}
-                        </>
+                        <div><MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyTable} /></div>
                     )
                 }
             </div>
