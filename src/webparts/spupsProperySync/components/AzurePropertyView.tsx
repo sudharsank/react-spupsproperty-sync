@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import * as strings from 'SpupsProperySyncWebPartStrings';
+import styles from './SpupsProperySync.module.scss';
 import EditableTable from './DynamicTable/EditableTable';
 import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
+import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 
 export interface IAzurePropertyViewProps {
     userProperties: any;
+    showProgress: boolean;
     UpdateSPUserWithAzureProps: (data: any) => void;
 }
 
@@ -50,13 +53,12 @@ export default class AzurePropertyView extends React.Component<IAzurePropertyVie
                     <>
                         <EditableTable onRowDel={this.handleRowDel.bind(this)} data={data} isReadOnly={true} />
                         <div style={{ marginTop: "5px" }}>
-                            <PrimaryButton text={strings.BtnUpdateUserProps} onClick={this.updateWithAzureProperty} style={{ marginRight: '5px' }} />
+                            <PrimaryButton text={strings.BtnUpdateUserProps} onClick={this.updateWithAzureProperty} style={{ marginRight: '5px' }} disabled={this.props.showProgress} />
+                            {this.props.showProgress && <Spinner className={styles.generateTemplateLoader} label={strings.PropsUpdateLoader} ariaLive="assertive" labelPosition="right" />}
                         </div>
                     </>
                 ) : (
-                        <div>
-                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyTable} />
-                        </div>
+                        <div><MessageContainer MessageScope={MessageScope.Info} Message={strings.EmptyTable} /></div>
                     )
                 }
             </div>

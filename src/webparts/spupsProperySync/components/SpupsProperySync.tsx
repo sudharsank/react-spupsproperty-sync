@@ -157,7 +157,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                 reloadGetProperties = true;
             }
         }
-        this.setState({ selectedUsers: items, reloadGetProperties }, () => {
+        this.setState({ selectedUsers: items, reloadGetProperties, clearData: false }, () => {
             if (this.state.selectedUsers.length <= 0) {
                 this.state.manualPropertyData.length > 0 ? this._getManualPropertyTable() : this._getAzurePropertyTable();
             }
@@ -242,7 +242,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let itemID = await this.helper.createSyncItem(SyncType.Azure);
         let finalJson = this._prepareJSONForAzFunc(data, true, itemID);
         this.helper.runAzFunction(this.props.context.httpClient, finalJson);
-        this.setState({ updatePropsLoader_Azure: false, clearData: true });
+        this.setState({ updatePropsLoader_Azure: false, clearData: true, selectedUsers: [], azurePropertyData: [] });
     }
     /**
      * Update with csv or json file
@@ -304,13 +304,16 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      */
     private _onMenuClick = (item?: PivotItem, ev?: React.MouseEvent<HTMLElement, MouseEvent>): void => {
         if (item) {
-            if(item.props.itemKey == "0") {
-                this.setState({ updatePropsLoader_Manual: false, clearData: false, selectedUsers: [], manualPropertyData: [] });
+            if (item.props.itemKey == "0") {
+                this.setState({
+                    updatePropsLoader_Manual: false, updatePropsLoader_Azure: false, clearData: false, selectedUsers: [],
+                    manualPropertyData: [], azurePropertyData: []
+                });
             }
             this.setState({
                 selectedMenu: item.props.itemKey
             }, () => {
-                
+
             });
         }
     }
@@ -357,7 +360,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                         {selectedMenu == "0" &&
                                             <div className={css(styles.menuContent)}>
                                                 <PeoplePicker
-                                                    disabled={disablePropsButtons || updatePropsLoader_Manual}
+                                                    disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure}
                                                     context={this.props.context}
                                                     titleText={strings.PPLPickerTitleText}
                                                     personSelectionLimit={10}
@@ -388,24 +391,23 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                 }
                                                 {selectedUsers && selectedUsers.length > 0 &&
                                                     <div style={{ marginTop: "5px" }}>
-                                                        <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }} disabled={disablePropsButtons || updatePropsLoader_Manual} />
-                                                        <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable} disabled={disablePropsButtons || updatePropsLoader_Manual} />
+                                                        <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }}
+                                                            disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
+                                                        <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable}
+                                                            disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
                                                         {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
                                                     </div>
                                                 }
-                                                {(manualPropertyData && manualPropertyData.length > 0) ? (
+                                                {manualPropertyData && manualPropertyData.length > 0 &&
                                                     <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties}
-                                                        showProgress={updatePropsLoader_Manual}/>
-                                                ) : (
-                                                        <>
-                                                        {clearData &&
-                                                            <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
-                                                        }
-                                                        </>
-                                                    )
+                                                        showProgress={updatePropsLoader_Manual} />
                                                 }
                                                 {azurePropertyData && azurePropertyData.length > 0 &&
-                                                    <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties} />
+                                                    <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties}
+                                                        showProgress={updatePropsLoader_Azure} />
+                                                }
+                                                {clearData &&
+                                                    <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
                                                 }
                                             </div>
                                         }
