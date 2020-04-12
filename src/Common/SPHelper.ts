@@ -26,6 +26,7 @@ export interface ISPHelper {
     addFilesToFolder: (filename: string, fileContent: any) => void;
     getFileContent: (filepath: string, contentType: FileContentType) => void;
     createSyncItem: (syncType: SyncType) => Promise<number>;
+    getAllJobs: () => void;
 
     runAzFunction: (httpClient: HttpClient, inputData: any, azFuncUrl: string) => void;
 }
@@ -53,11 +54,11 @@ export default class SPHelper implements ISPHelper {
     }
 
     public getTemplateLibraryInfo = async (libid: string) => {
-        if(libid) {
+        if (libid) {
             let libinfo = await this._web.lists.getById(libid).select('Title').get();
             this.SyncTemplateFilePath = `/${libinfo.Title}/SyncJobTemplate/`;
             this.SyncUploadFilePath = `/${libinfo.Title}/UPSDataToProcess/`;
-        }        
+        }
     }
 
     public demoFunction = async () => {
@@ -196,6 +197,15 @@ export default class SPHelper implements ISPHelper {
         });
         returnVal = itemAdded.data.Id;
         return returnVal;
+    }
+    /**
+     * Get all the jobs items
+     */
+    public getAllJobs = async () => {
+        return await this._web.lists.getByTitle(this.Lst_SyncJobs).items
+            .select('ID', 'Title', 'SyncedData', 'Status', 'SyncType', 'Created', 'Author/Title', 'Author/Id')
+            .expand('Author')
+            .getAll();
     }
 
     protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";

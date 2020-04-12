@@ -11,13 +11,13 @@ import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import { css } from 'office-ui-fabric-react/lib';
 import { IPropertyMappings, FileContentType, MessageScope, SyncType } from '../../../Common/IModel';
-//import { ISpupsProperySyncProps } from './ISpupsProperySyncProps';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import SPHelper from '../../../Common/SPHelper';
 import PropertyMappingList from './PropertyMapping/PropertyMappingList';
 import UPPropertyData from './UPPropertyData';
 import ManualPropertyUpdate from './ManualPropertyUpdate';
 import AzurePropertyView from './AzurePropertyView';
+import SyncJobsView from './SyncJobs';
 import { map } from 'lodash';
 import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
@@ -468,7 +468,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                         }
                                         {selectedMenu == "4" &&
                                             <div className={css(styles.menuContent)}>
-                                                Sync Jobs
+                                                <SyncJobsView helper={this.state.helper} />
                                             </div>
                                         }
                                     </>

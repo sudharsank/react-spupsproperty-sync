@@ -11,6 +11,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   UploadDataToSyncLoader: string;
   PropsLoader: string;
   PropsUpdateLoader: string;
+  JobsListLoaderDesc: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;

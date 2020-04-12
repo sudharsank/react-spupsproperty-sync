@@ -43,6 +43,19 @@
   margin-top: 5px;
 }
 
+.status {font-weight: bold;}
+.status.blue { i { color: blue; } }
+.status.green { i { color: green; } }
+.status.orange { i { color: orange; } }
+.status.red { i { color: red; } }
+
+.syncjobsContainer {
+  max-height: 500px;
+  overflow-y: auto;
+  button {
+    height: 24px;
+  }
+}
 
 .uppropertydata {
   .uppropertylist {

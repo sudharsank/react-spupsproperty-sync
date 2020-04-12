@@ -14,7 +14,7 @@ export default function MessageContainer(props: IMessageContainerProps) {
     const [showMessage, setshowMessage] = React.useState<boolean>(true);
     const dismissMessage = () => {
         setshowMessage(false);
-    }
+    };
     const dismiss = props.ShowDismiss ? dismissMessage : null;
     return (
         <div className={styles.MessageContainer}>

@@ -12,6 +12,7 @@ define([], function() {
     UploadDataToSyncLoader: "Wait, uploading data for syncing",
     PropsLoader: "Please wait...",
     PropsUpdateLoader: "Please wait, initializing the job to update the properties",
+    JobsListLoaderDesc: "Loading the jobs list...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",
