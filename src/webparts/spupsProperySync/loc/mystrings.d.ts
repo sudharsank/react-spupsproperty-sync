@@ -6,12 +6,14 @@ declare interface ISpupsProperySyncWebPartStrings {
   PlaceholderDescription: string;
   PlaceholderButtonLabel: string;
   DefaultAppTitle: string;
+  JobResultsDialogTitle: string;
 
   GenerateTemplateLoader: string;
   UploadDataToSyncLoader: string;
   PropsLoader: string;
   PropsUpdateLoader: string;
   JobsListLoaderDesc: string;
+  JobResultsLoaderDesc: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;

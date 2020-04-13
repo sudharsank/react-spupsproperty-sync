@@ -7,12 +7,14 @@ define([], function() {
     PlaceholderDescription: "Use the configuration settings to map the document library required to store the property mapping templates.",
     PlaceholderButtonLabel: "Configure",
     DefaultAppTitle: "SharePoint Profile Property Sync",
+    JobResultsDialogTitle: "Users list with properties updated!",
 
     GenerateTemplateLoader: "Wait, generating the template...",
     UploadDataToSyncLoader: "Wait, uploading data for syncing",
     PropsLoader: "Please wait...",
     PropsUpdateLoader: "Please wait, initializing the job to update the properties",
     JobsListLoaderDesc: "Loading the jobs list...",
+    JobResultsLoaderDesc: "Loading the results...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",

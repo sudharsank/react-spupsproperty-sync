@@ -5,11 +5,14 @@ import { DetailsList, buildColumns, IColumn, DetailsListLayoutMode, ConstrainMod
 import { Icon } from 'office-ui-fabric-react/lib/Icon';
 import { ActionButton, IIconProps } from 'office-ui-fabric-react';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
+import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
 import { css } from 'office-ui-fabric-react/lib';
 import SPHelper from '../../../Common/SPHelper';
 import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
+import SyncJobResults from './SyncJobResults';
+import { orderBy } from 'lodash';
 
 export interface ISyncJobsProps {
     helper: SPHelper;
@@ -20,8 +23,12 @@ export default function SyncJobsView(props: ISyncJobsProps) {
     const [loading, setLoading] = React.useState<boolean>(true);
     const [jobs, setJobs] = React.useState<any[]>([]);
     const [columns, setColumns] = React.useState<IColumn[]>([]);
+    const [jobresults, setJobResults] = React.useState<string>('');
+    const [hideDialog, setHideDialog] = React.useState<boolean>(true);
+
     const actionClick = (data) => {
-        console.log(data);
+        setJobResults(data.SyncResults);
+        setHideDialog(false);
     };
     const StatusRender = (childprops) => {
         switch (childprops.Status.toLowerCase()) {
@@ -75,8 +82,12 @@ export default function SyncJobsView(props: ISyncJobsProps) {
     const _buildJobsList = async () => {
         _buildColumns();
         let jobslist = await props.helper.getAllJobs();
+        jobslist = orderBy(jobslist, ['ID'], ['desc']);
         setJobs(jobslist);
         setLoading(false);
+    };
+    const _closeDialog = () => {
+        setHideDialog(true);
     };
 
     React.useEffect(() => {
@@ -108,6 +119,19 @@ export default function SyncJobsView(props: ISyncJobsProps) {
                         }
                     </>
                 )}
+            <Dialog hidden={hideDialog} onDismiss={_closeDialog} maxWidth='700'
+                dialogContentProps={{
+                    type: DialogType.close,
+                    title: `${strings.JobResultsDialogTitle}`
+                }}
+                modalProps={{
+                    isBlocking: true,
+                    isDarkOverlay: true,
+                    styles: { main: { maxHeight: 700 } },
+                }}>
+                <SyncJobResults helper={props.helper} data={jobresults} />
+            </Dialog>
+
         </div>
     );
 }
