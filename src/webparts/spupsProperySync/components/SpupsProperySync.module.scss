@@ -53,12 +53,34 @@
     position: absolute;
     margin-left: 5px;
 }
+.searchcontainer {
+  width: 95%;
+  display: inline-block;
+}
+.refreshContainer {
+  display: inline-flex;  
+  margin-top: 10px;
+  margin-left: 5px;
+  position: absolute;
+}
 
 .syncjobsContainer {
   max-height: 500px;
   overflow-y: auto;
   button {
     height: 24px;
+  }
+}
+.templatesContainer {
+  max-height: 500px;
+  button {
+    height: 24px;
+  }
+  div.templateList {
+    overflow-y: auto;
+    height: 450px;
+    margin-top: 5px;
+    width: 100%;
   }
 }
 

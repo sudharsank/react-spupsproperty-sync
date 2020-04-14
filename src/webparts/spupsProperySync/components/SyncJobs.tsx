@@ -1,18 +1,21 @@
 import * as React from 'react';
 import styles from './SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
-import { DetailsList, buildColumns, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { DetailsList, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { IPersonaSharedProps, Persona, PersonaSize } from 'office-ui-fabric-react/lib/Persona';
+import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
 import { Icon } from 'office-ui-fabric-react/lib/Icon';
-import { ActionButton, IIconProps } from 'office-ui-fabric-react';
+import { ActionButton, IIconProps, IconButton } from 'office-ui-fabric-react';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
-import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+import { Dialog, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { css } from 'office-ui-fabric-react/lib';
 import SPHelper from '../../../Common/SPHelper';
 import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
 import SyncJobResults from './SyncJobResults';
-import { orderBy } from 'lodash';
+import { orderBy, filter } from 'lodash';
 
 export interface ISyncJobsProps {
     helper: SPHelper;
@@ -20,11 +23,17 @@ export interface ISyncJobsProps {
 
 export default function SyncJobsView(props: ISyncJobsProps) {
     const actionIcon: IIconProps = { iconName: 'InfoSolid' };
+    const refreshIcon: IIconProps = { iconName: 'Refresh' };
+
+    const [refreshLoading, setRefreshLoading] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(true);
     const [jobs, setJobs] = React.useState<any[]>([]);
+    const [filteredjobs, setFilteredJobs] = React.useState<any[]>([]);
     const [columns, setColumns] = React.useState<IColumn[]>([]);
     const [jobresults, setJobResults] = React.useState<string>('');
     const [hideDialog, setHideDialog] = React.useState<boolean>(true);
+    const [searchKey, setSearchKey] = React.useState<string>('');
+    const [emptySearch, setEmptySearch] = React.useState<boolean>(false);
 
     const actionClick = (data) => {
         setJobResults(data.SyncResults);
@@ -56,7 +65,13 @@ export default function SyncJobsView(props: ISyncJobsProps) {
         cols.push({
             key: 'Author', name: 'Author', fieldName: 'Author.Title', minWidth: 250, maxWidth: 250,
             onRender: (item: any, index: number, column: IColumn) => {
-                return (<div>{item.Author["Title"]}</div>);
+                const authorPersona: IPersonaSharedProps = {
+                    imageUrl: `/_layouts/15/userphoto.aspx?Size=S&Username=${item["Author"].EMail}`,
+                    text: item["Author"].Title,
+                };
+                return (
+                    <div><Persona {...authorPersona} size={PersonaSize.size24} /></div>
+                );
             }
         } as IColumn);
         cols.push({
@@ -79,15 +94,33 @@ export default function SyncJobsView(props: ISyncJobsProps) {
         });
         setColumns(cols);
     };
-    const _buildJobsList = async () => {
-        _buildColumns();
+    const _loadJobsList = async () => {
         let jobslist = await props.helper.getAllJobs();
         jobslist = orderBy(jobslist, ['ID'], ['desc']);
         setJobs(jobslist);
+    };
+    const _buildJobsList = async () => {
+        _buildColumns();
+        await _loadJobsList();
         setLoading(false);
     };
     const _closeDialog = () => {
         setHideDialog(true);
+    };
+    const _refreshList = async () => {
+        setRefreshLoading(true);
+        await _loadJobsList();
+        setRefreshLoading(false);
+    };
+    const _searchJobsList = (srchkey) => {
+        setEmptySearch(false);
+        setSearchKey(srchkey);
+        let filteredList = filter(jobs, (o) => {
+            return o.Title.toLowerCase().indexOf(srchkey.toLowerCase()) >= 0 || o['Author'].Title.toLowerCase().indexOf(srchkey.toLowerCase()) >= 0 ||
+                o.Status.toLowerCase().indexOf(srchkey.toLowerCase()) >= 0 || o.SyncType.toLowerCase().indexOf(srchkey.toLowerCase()) >= 0;
+        });
+        if (filteredList.length <= 0) setEmptySearch(true);
+        setFilteredJobs(filteredList);
     };
 
     React.useEffect(() => {
@@ -101,17 +134,33 @@ export default function SyncJobsView(props: ISyncJobsProps) {
                 <ProgressIndicator label={strings.PropsLoader} description={strings.JobsListLoaderDesc} />
             }
             {(!loading && jobs && jobs.length > 0) ? (
-                <DetailsList
-                    items={jobs}
-                    setKey="set"
-                    columns={columns}
-                    compact={true}
-                    layoutMode={DetailsListLayoutMode.justified}
-                    constrainMode={ConstrainMode.unconstrained}
-                    isHeaderVisible={true}
-                    selectionMode={SelectionMode.none}
-                    enableShimmer={true}
-                    className={styles.uppropertylist} />
+                <>
+                    <div className={styles.searchcontainer}>
+                        <SearchBox placeholder={strings.JobsListSearchPH} underlined={true} value={searchKey} onChange={_searchJobsList} />
+                    </div>
+                    <div className={styles.refreshContainer}>
+                        <IconButton iconProps={refreshIcon} title="Refresh" ariaLabel="Refresh" onClick={_refreshList} disabled={refreshLoading} />
+                        {refreshLoading &&
+                            <Spinner size={SpinnerSize.small} />
+                        }
+                    </div>
+                    {emptySearch &&
+                        <div style={{ marginTop: '-10px', width: '95%' }}>
+                            <MessageContainer MessageScope={MessageScope.Failure} Message={strings.EmptySearchResults} />
+                        </div>
+                    }
+                    <DetailsList
+                        items={filteredjobs && filteredjobs.length > 0 ? filteredjobs : jobs}
+                        setKey="set"
+                        columns={columns}
+                        compact={true}
+                        layoutMode={DetailsListLayoutMode.justified}
+                        constrainMode={ConstrainMode.unconstrained}
+                        isHeaderVisible={true}
+                        selectionMode={SelectionMode.none}
+                        enableShimmer={true}
+                        className={styles.uppropertylist} />
+                </>
             ) : (
                     <>
                         {!loading &&

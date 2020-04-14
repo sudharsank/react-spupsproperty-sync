@@ -8,6 +8,8 @@ define([], function() {
     PlaceholderButtonLabel: "Configure",
     DefaultAppTitle: "SharePoint Profile Property Sync",
     JobResultsDialogTitle: "Users list with properties updated!",
+    JobsListSearchPH: "Search by Title, SyncType, Author, Status...",
+    TemplateListSearchPH: "Search by Name, Author...",
 
     GenerateTemplateLoader: "Wait, generating the template...",
     UploadDataToSyncLoader: "Wait, uploading data for syncing",
@@ -15,6 +17,7 @@ define([], function() {
     PropsUpdateLoader: "Please wait, initializing the job to update the properties",
     JobsListLoaderDesc: "Loading the jobs list...",
     JobResultsLoaderDesc: "Loading the results...",
+    TemplateListLoaderDesc: "Loading the templates...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",
@@ -35,6 +38,7 @@ define([], function() {
     EmptyDataWarningMsg: "Columns with empty values are not considered for update!",
     EmptyTable: "Sorry, no data to be displayed!",
     EmptyFile: "Oops, the file is empty",
+    EmptySearchResults: "Sorry, no data found. Displaying all the data",
     UserListChanges: "Changes in user list, please remove the user from the table manually or reinitialize or get the Azure properties again!",
     UserListEmpty: "Since all the users have been removed, the table has been cleared!",
     JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!",

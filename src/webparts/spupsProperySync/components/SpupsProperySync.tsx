@@ -18,6 +18,7 @@ import UPPropertyData from './UPPropertyData';
 import ManualPropertyUpdate from './ManualPropertyUpdate';
 import AzurePropertyView from './AzurePropertyView';
 import SyncJobsView from './SyncJobs';
+import TemplatesView from './TemplatesView';
 import { map } from 'lodash';
 import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
@@ -463,7 +464,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                         }
                                         {selectedMenu == "3" &&
                                             <div className={css(styles.menuContent)}>
-                                                Templates Generated
+                                                <TemplatesView helper={this.state.helper} />
                                             </div>
                                         }
                                         {selectedMenu == "4" &&

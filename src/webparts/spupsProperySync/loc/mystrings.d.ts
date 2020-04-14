@@ -7,6 +7,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   PlaceholderButtonLabel: string;
   DefaultAppTitle: string;
   JobResultsDialogTitle: string;
+  JobsListSearchPH: string;
 
   GenerateTemplateLoader: string;
   UploadDataToSyncLoader: string;
@@ -14,6 +15,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   PropsUpdateLoader: string;
   JobsListLoaderDesc: string;
   JobResultsLoaderDesc: string;
+  TemplateListLoaderDesc: string;
+  TemplateListSearchPH: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;
@@ -34,6 +37,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptyDataWarningMsg: string;
   EmptyTable: string;
   EmptyFile: string;
+  EmptySearchResults: string;
   UserListChanges: string;
   UserListEmpty: string;
   JobIntializedSuccess: string;

@@ -27,6 +27,7 @@ export interface ISPHelper {
     getFileContent: (filepath: string, contentType: FileContentType) => void;
     createSyncItem: (syncType: SyncType) => Promise<number>;
     getAllJobs: () => void;
+    getAllTemplates: () => void;
 
     runAzFunction: (httpClient: HttpClient, inputData: any, azFuncUrl: string) => void;
 }
@@ -203,9 +204,19 @@ export default class SPHelper implements ISPHelper {
      */
     public getAllJobs = async () => {
         return await this._web.lists.getByTitle(this.Lst_SyncJobs).items
-            .select('ID', 'Title', 'SyncedData', 'Status', 'SyncType', 'Created', 'Author/Title', 'Author/Id')
+            .select('ID', 'Title', 'SyncedData', 'Status', 'SyncType', 'Created', 'Author/Title', 'Author/Id', 'Author/EMail')
             .expand('Author')
             .getAll();
+    }
+    /**
+     * Get all the templates generated
+     */
+    public getAllTemplates = async () => {
+        return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncTemplateFilePath)
+            .files
+            .select('Name', 'ServerRelativeUrl', 'TimeCreated')
+            .expand('Author')
+            .get();
     }
 
     protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";

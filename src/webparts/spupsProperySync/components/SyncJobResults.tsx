@@ -1,7 +1,8 @@
 import * as React from 'react';
 import styles from './SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
-import { DetailsList, buildColumns, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { DetailsList, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { IPersonaSharedProps, Persona, PersonaSize } from 'office-ui-fabric-react/lib/Persona';
 import { Icon } from 'office-ui-fabric-react/lib/Icon';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { css } from 'office-ui-fabric-react/lib';
@@ -22,7 +23,18 @@ export default function SyncJobResults(props: ISyncJobResultsProps) {
         let cols: IColumn[] = [];
         colValues.map(col => {
             if (col.toLowerCase() == "userid") {
-                cols.push({ key: 'UserID', name: 'User ID', fieldName: col, minWidth: 250, maxWidth: 250 } as IColumn);
+                cols.push({
+                    key: 'UserID', name: 'User ID', fieldName: col, minWidth: 250, maxWidth: 250,
+                    onRender: (item: any, index: number, column: IColumn) => {
+                        const authorPersona: IPersonaSharedProps = {
+                            imageUrl: `/_layouts/15/userphoto.aspx?Size=S&Username=${item[col]}`,
+                            text: item[col],
+                        };
+                        return (
+                            <div><Persona {...authorPersona} size={PersonaSize.size24} /></div>
+                        );
+                    }
+                } as IColumn);
             } else {
                 cols.push({
                     key: col, name: col, fieldName: col, minWidth: 100, maxWidth: 250,
