@@ -1,5 +1,5 @@
 import * as React from 'react';
-import styles from './SpupsProperySync.module.scss';
+import styles from '../SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import { DetailsList, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
 import { IPersonaSharedProps, Persona, PersonaSize } from 'office-ui-fabric-react/lib/Persona';
@@ -10,10 +10,10 @@ import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator'
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Dialog, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { css } from 'office-ui-fabric-react/lib';
-import SPHelper from '../../../Common/SPHelper';
+import SPHelper from '../../../../Common/SPHelper';
 import * as moment from 'moment';
-import MessageContainer from './MessageContainer';
-import { MessageScope } from '../../../Common/IModel';
+import MessageContainer from '../MessageContainer';
+import { MessageScope } from '../../../../Common/IModel';
 import SyncJobResults from './SyncJobResults';
 import { orderBy, filter } from 'lodash';
 
