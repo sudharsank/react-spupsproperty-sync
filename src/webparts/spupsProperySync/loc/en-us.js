@@ -11,6 +11,7 @@ define([], function() {
     JobsListSearchPH: "Search by Title, SyncType, Author, Status...",
     TemplateListSearchPH: "Search by Name, Author...",
     TemplateStructureDialogTitle: "Properties defined in the template!",
+    BulkSyncDataDialogTitle: "Data defined in the file!",
 
     GenerateTemplateLoader: "Wait, generating the template...",
     UploadDataToSyncLoader: "Wait, uploading data for syncing",
@@ -20,6 +21,8 @@ define([], function() {
     JobResultsLoaderDesc: "Loading the results...",
     TemplateListLoaderDesc: "Loading the templates...",
     TemplatePropsLoaderDesc: "Loading properties, please wait...",
+    BulkSyncListLoaderDesc: "Loading the bulk sync files...",
+    BulkSyncFileDataLoaderDesc: "Loading data, please wait...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",

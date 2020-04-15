@@ -28,6 +28,7 @@ export interface ISPHelper {
     createSyncItem: (syncType: SyncType) => Promise<number>;
     getAllJobs: () => void;
     getAllTemplates: () => void;
+    getAllBulkList: () => void;
 
     runAzFunction: (httpClient: HttpClient, inputData: any, azFuncUrl: string) => void;
 }
@@ -213,6 +214,16 @@ export default class SPHelper implements ISPHelper {
      */
     public getAllTemplates = async () => {
         return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncTemplateFilePath)
+            .files
+            .select('Name', 'ServerRelativeUrl', 'TimeCreated')
+            .expand('Author')
+            .get();
+    }
+    /**
+     * Get all the bulk sync files
+     */
+    public getAllBulkList = async () => {
+        return await this._web.getFolderByServerRelativeUrl(this.SiteRelativeURL + this.SyncUploadFilePath)
             .files
             .select('Name', 'ServerRelativeUrl', 'TimeCreated')
             .expand('Author')

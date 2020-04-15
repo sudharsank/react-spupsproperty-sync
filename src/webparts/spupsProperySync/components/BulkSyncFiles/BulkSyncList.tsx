@@ -12,24 +12,24 @@ import { Link } from 'office-ui-fabric-react/lib/Link';
 import { Icon, IconType, IIconProps } from 'office-ui-fabric-react/lib/Icon';
 import * as moment from 'moment';
 import { orderBy, filter } from 'lodash';
+import { MessageScope, FileContentType } from '../../../../Common/IModel';
 import SPHelper from '../../../../Common/SPHelper';
 import MessageContainer from '../MessageContainer';
-import { MessageScope, FileContentType } from '../../../../Common/IModel';
-import TemplateStructure from './TemplatesStructure';
+import BulkSyncData from './BulkSyncData';
 
-export interface ITemplatesProps {
+export interface IBulkSyncListProps {
     helper: SPHelper;
 }
 
-export default function TemplatesView(props: ITemplatesProps) {
+export default function BulkSyncList(props: IBulkSyncListProps) {
     const actionIcon: IIconProps = { iconName: 'InfoSolid' };
     const refreshIcon: IIconProps = { iconName: 'Refresh' };
 
     const [refreshLoading, setRefreshLoading] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(true);
     const [downloadLoading, setDownloadLoading] = React.useState<boolean>(false);
-    const [templates, setTemplates] = React.useState<any[]>([]);
-    const [filteredtemplates, setFilteredTemplates] = React.useState<any[]>([]);
+    const [bulklist, setBulkList] = React.useState<any[]>([]);
+    const [filteredBulkList, setFilteredBulkList] = React.useState<any[]>([]);
     const [columns, setColumns] = React.useState<IColumn[]>([]);
     const [searchKey, setSearchKey] = React.useState<string>('');
     const [emptySearch, setEmptySearch] = React.useState<boolean>(false);
@@ -69,7 +69,7 @@ export default function TemplatesView(props: ITemplatesProps) {
             onRender: (item: any, index: number, column: IColumn) => {
                 let fileextn = item.Name.split('.').pop();
                 return (
-                    <>
+                    <div style={{display: 'flex', overflow: 'hidden', textOverflow: 'ellipsis'}}>
                         <div className={styles.fileiconDiv}>
                             {fileextn.toLowerCase() === "csv" &&
                                 <Icon iconName="ExcelDocument" ariaLabel={item.Name} iconType={IconType.Default} />
@@ -84,7 +84,7 @@ export default function TemplatesView(props: ITemplatesProps) {
                                 <Spinner size={SpinnerSize.small} />
                             </div>
                         }
-                    </>
+                    </div>
                 );
             }
         });
@@ -116,47 +116,47 @@ export default function TemplatesView(props: ITemplatesProps) {
         });
         setColumns(cols);
     };
-    const _loadTemplatesList = async () => {
-        let templateList = await props.helper.getAllTemplates();
-        templateList = orderBy(templateList, ['TimeCreated'], ['desc']);
-        setTemplates(templateList);
+    const _loadBulkSyncList = async () => {
+        let bulkSyncList = await props.helper.getAllBulkList();
+        bulkSyncList = orderBy(bulkSyncList, ['TimeCreated'], ['desc']);
+        setBulkList(bulkSyncList);
     };
-    const _buildTemplatesList = async () => {
+    const _buildBulkSyncList = async () => {
         _buildColumns();
-        await _loadTemplatesList();
+        await _loadBulkSyncList();
         setLoading(false);
     };
     const _refreshList = async () => {
         setRefreshLoading(true);
-        await _loadTemplatesList();
+        await _loadBulkSyncList();
         setRefreshLoading(false);
     };
-    const _searchTemplatesList = (srchkey) => {
+    const _searchBulkSyncList = (srchkey) => {
         setEmptySearch(false);
         setSearchKey(srchkey);
-        let filteredList = filter(templates, (o) => {
+        let filteredList = filter(bulklist, (o) => {
             return o.Name.toLowerCase().indexOf(srchkey.toLowerCase()) >= 0 || o['Author'].Title.toLowerCase().indexOf(srchkey.toLowerCase()) >= 0;
         });
         if (filteredList.length <= 0) setEmptySearch(true);
-        setFilteredTemplates(filteredList);
+        setFilteredBulkList(filteredList);
     };
     const _closeDialog = () => {
         setHideDialog(true);
     };
 
     React.useEffect(() => {
-        _buildTemplatesList();
+        _buildBulkSyncList();
     }, []);
 
     return (
-        <div className={styles.templatesContainer}>
+        <div className={styles.syncjobsContainer}>
             {loading &&
-                <ProgressIndicator label={strings.PropsLoader} description={strings.TemplateListLoaderDesc} />
+                <ProgressIndicator label={strings.PropsLoader} description={strings.BulkSyncListLoaderDesc} />
             }
-            {(!loading && templates && templates.length > 0) ? (
+            {(!loading && bulklist && bulklist.length > 0) ? (
                 <>
                     <div className={styles.searchcontainer}>
-                        <SearchBox placeholder={strings.TemplateListSearchPH} underlined={true} value={searchKey} onChange={_searchTemplatesList} />
+                        <SearchBox placeholder={strings.TemplateListSearchPH} underlined={true} value={searchKey} onChange={_searchBulkSyncList} />
                     </div>
                     <div className={styles.refreshContainer}>
                         <IconButton iconProps={refreshIcon} title="Refresh" ariaLabel="Refresh" onClick={_refreshList} disabled={refreshLoading} />
@@ -171,7 +171,7 @@ export default function TemplatesView(props: ITemplatesProps) {
                     }
                     <div className={styles.templateList}>
                         <DetailsList
-                            items={filteredtemplates && filteredtemplates.length > 0 ? filteredtemplates : templates}
+                            items={filteredBulkList && filteredBulkList.length > 0 ? filteredBulkList : bulklist}
                             setKey="set"
                             columns={columns}
                             compact={true}
@@ -194,14 +194,14 @@ export default function TemplatesView(props: ITemplatesProps) {
             <Dialog hidden={hideDialog} onDismiss={_closeDialog} maxWidth='700' minWidth='500px'
                 dialogContentProps={{
                     type: DialogType.close,
-                    title: `${strings.TemplateStructureDialogTitle}`
+                    title: `${strings.BulkSyncDataDialogTitle}`
                 }}
                 modalProps={{
                     isBlocking: true,
                     isDarkOverlay: true,
-                    styles: { main: { minWidth: 500, maxHeight: 700 } },
+                    styles: { main: { minWidth: 500, maxHeight: 700, minHeight: 100 } },
                 }}>
-                <TemplateStructure helper={props.helper} fileurl={fileurl} />
+                <BulkSyncData helper={props.helper} fileurl={fileurl} />
             </Dialog>
         </div >
     );

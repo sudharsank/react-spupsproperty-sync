@@ -19,6 +19,7 @@ import ManualPropertyUpdate from './ManualPropertyUpdate';
 import AzurePropertyView from './AzurePropertyView';
 import SyncJobsView from './SyncJobs/SyncJobs';
 import TemplatesView from './TemplatesList/TemplatesView';
+import BulkSyncList from './BulkSyncFiles/BulkSyncList';
 import { map } from 'lodash';
 import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
@@ -459,7 +460,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                         }
                                         {selectedMenu == "2" &&
                                             <div className={css(styles.menuContent)}>
-                                                Uploaded Content Files
+                                                <BulkSyncList helper={this.state.helper} />
                                             </div>
                                         }
                                         {selectedMenu == "3" &&

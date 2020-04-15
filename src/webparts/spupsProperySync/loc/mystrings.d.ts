@@ -8,6 +8,10 @@ declare interface ISpupsProperySyncWebPartStrings {
   DefaultAppTitle: string;
   JobResultsDialogTitle: string;
   JobsListSearchPH: string;
+  TemplateListSearchPH: string;
+  TemplateStructureDialogTitle: string;
+  BulkSyncDataDialogTitle: string;
+  BulkSyncFileDataLoaderDesc: string;
 
   GenerateTemplateLoader: string;
   UploadDataToSyncLoader: string;
@@ -15,10 +19,9 @@ declare interface ISpupsProperySyncWebPartStrings {
   PropsUpdateLoader: string;
   JobsListLoaderDesc: string;
   JobResultsLoaderDesc: string;
-  TemplateListLoaderDesc: string;
-  TemplateListSearchPH: string;
-  TemplateStructureDialogTitle: string;
+  TemplateListLoaderDesc: string;  
   TemplatePropsLoaderDesc: string;
+  BulkSyncListLoaderDesc: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;
