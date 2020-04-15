@@ -17,6 +17,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   JobResultsLoaderDesc: string;
   TemplateListLoaderDesc: string;
   TemplateListSearchPH: string;
+  TemplateStructureDialogTitle: string;
+  TemplatePropsLoaderDesc: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;

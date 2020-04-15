@@ -10,6 +10,7 @@ define([], function() {
     JobResultsDialogTitle: "Users list with properties updated!",
     JobsListSearchPH: "Search by Title, SyncType, Author, Status...",
     TemplateListSearchPH: "Search by Name, Author...",
+    TemplateStructureDialogTitle: "Properties defined in the template!",
 
     GenerateTemplateLoader: "Wait, generating the template...",
     UploadDataToSyncLoader: "Wait, uploading data for syncing",
@@ -18,6 +19,7 @@ define([], function() {
     JobsListLoaderDesc: "Loading the jobs list...",
     JobResultsLoaderDesc: "Loading the results...",
     TemplateListLoaderDesc: "Loading the templates...",
+    TemplatePropsLoaderDesc: "Loading properties, please wait...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",

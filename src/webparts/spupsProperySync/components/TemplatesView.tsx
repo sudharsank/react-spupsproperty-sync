@@ -4,16 +4,71 @@ import * as strings from 'SpupsProperySyncWebPartStrings';
 import { DetailsList, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
 import { IPersonaSharedProps, Persona, PersonaSize } from 'office-ui-fabric-react/lib/Persona';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
-import { ActionButton, IIconProps, IconButton, SearchBox, Spinner, SpinnerSize } from 'office-ui-fabric-react';
+import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
+import { ActionButton, IconButton } from 'office-ui-fabric-react/lib/Button';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+import { Dialog, DialogType } from 'office-ui-fabric-react/lib/Dialog';
+import { Link } from 'office-ui-fabric-react/lib/Link';
+import { Icon, IconType, IIconProps } from 'office-ui-fabric-react/lib/Icon';
 import SPHelper from '../../../Common/SPHelper';
 import * as moment from 'moment';
 import MessageContainer from './MessageContainer';
-import { MessageScope } from '../../../Common/IModel';
+import { MessageScope, FileContentType } from '../../../Common/IModel';
 import { orderBy, filter } from 'lodash';
-
 
 export interface ITemplatesProps {
     helper: SPHelper;
+}
+
+export interface ITemplatesStructureProps {
+    helper: SPHelper;
+    fileurl: string;
+}
+
+export function TemplateStructure(props: ITemplatesStructureProps) {
+
+    const [loading, setLoading] = React.useState<boolean>(true);
+    const [userprops, setUserProps] = React.useState<any[]>([]);
+
+    const _loadTemplateStructure = async () => {
+        let fileextn: string = props.fileurl.split('.').pop();
+        let filecontent: any = null;
+        let finaljson: any[] = [];
+        if (fileextn.toLowerCase() === "csv") {
+            let csvcontent = await props.helper.getFileContent(props.fileurl, FileContentType.Text);
+            let re = /\"/gi;
+            csvcontent.split(',').map((prop: string) => {
+                finaljson.push(prop.replace(re, ''));
+            });
+        } else if (fileextn.toLowerCase() === "json") {
+            filecontent = await props.helper.getFileContent(props.fileurl, FileContentType.JSON);
+            Object.keys(filecontent[0]).map((key) => {
+                finaljson.push(key);
+            });
+        }
+        setLoading(false);
+        setUserProps(finaljson);
+    };
+
+    React.useEffect(() => {
+        _loadTemplateStructure();
+    }, [props.fileurl]);
+
+    return (
+        <div>
+            {loading &&
+                <Spinner size={SpinnerSize.small} label={strings.TemplatePropsLoaderDesc} labelPosition={"top"} />
+            }
+            {!loading && userprops && userprops.length > 0 &&
+                <div className={styles.propertyMappingContainer} data-is-focusable={true}>
+                    {userprops.map((userprop: string) => {
+                        return <div className={styles.propertydiv}>{userprop}</div>;
+                    })
+                    }
+                </div>
+            }
+        </div>
+    );
 }
 
 export default function TemplatesView(props: ITemplatesProps) {
@@ -22,14 +77,36 @@ export default function TemplatesView(props: ITemplatesProps) {
 
     const [refreshLoading, setRefreshLoading] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(true);
+    const [downloadLoading, setDownloadLoading] = React.useState<boolean>(false);
     const [templates, setTemplates] = React.useState<any[]>([]);
     const [filteredtemplates, setFilteredTemplates] = React.useState<any[]>([]);
     const [columns, setColumns] = React.useState<IColumn[]>([]);
     const [searchKey, setSearchKey] = React.useState<string>('');
     const [emptySearch, setEmptySearch] = React.useState<boolean>(false);
+    const [hideDialog, setHideDialog] = React.useState<boolean>(true);
+    const [fileurl, setFileUrl] = React.useState<string>('');
 
-    const actionClick = (data) => {
-        console.log(data);
+    const downloadTemplate = async (fileserverurl, filename) => {
+        setDownloadLoading(true);
+        let blobContent: any = await props.helper.getFileContent(fileserverurl, FileContentType.Blob);
+        if (window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveBlob(blobContent, filename);
+        } else {
+            const anchor = window.document.createElement('a');
+            anchor.href = window.URL.createObjectURL(blobContent);
+            anchor.download = filename;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+        }
+        setDownloadLoading(false);
+    };
+    const actionClick = async (data) => {
+        if (data.FileUrl) {
+            setFileUrl(data.FileUrl);
+            setHideDialog(false);
+
+        }
     };
     const ActionRender = (actionProps) => {
         return (
@@ -38,7 +115,30 @@ export default function TemplatesView(props: ITemplatesProps) {
     };
     const _buildColumns = () => {
         let cols: IColumn[] = [];
-        cols.push({ key: 'Name', name: 'Name', fieldName: 'Name', minWidth: 300, maxWidth: 300 });
+        cols.push({
+            key: 'Name', name: 'Name', fieldName: 'Name', minWidth: 300, maxWidth: 300,
+            onRender: (item: any, index: number, column: IColumn) => {
+                let fileextn = item.Name.split('.').pop();
+                return (
+                    <>
+                        <div className={styles.fileiconDiv}>
+                            {fileextn.toLowerCase() === "csv" &&
+                                <Icon iconName="ExcelDocument" ariaLabel={item.Name} iconType={IconType.Default} />
+                            }
+                            {fileextn.toLowerCase() === "json" &&
+                                <Icon iconName="FileCode" ariaLabel={item.Name} iconType={IconType.Default} />
+                            }
+                        </div>
+                        <Link onClick={() => { downloadTemplate(`${item.ServerRelativeUrl}`, `${item.Name}`); }} value={item.Name}>{item.Name}</Link>
+                        {downloadLoading &&
+                            <div className={styles.downloadLoaderDiv}>
+                                <Spinner size={SpinnerSize.small} />
+                            </div>
+                        }
+                    </>
+                );
+            }
+        });
         cols.push({
             key: 'Author', name: 'Author', fieldName: 'Author', minWidth: 300, maxWidth: 300,
             onRender: (item: any, index: number, column: IColumn) => {
@@ -62,7 +162,7 @@ export default function TemplatesView(props: ITemplatesProps) {
         cols.push({
             key: 'Actions', name: 'Actions', fieldName: 'ID', minWidth: 100, maxWidth: 100,
             onRender: (item: any, index: number, column: IColumn) => {
-                return (<ActionRender FilePath={item.ServerRelativeUrl} />);
+                return (<ActionRender FileUrl={item.ServerRelativeUrl} />);
             }
         });
         setColumns(cols);
@@ -90,6 +190,9 @@ export default function TemplatesView(props: ITemplatesProps) {
         });
         if (filteredList.length <= 0) setEmptySearch(true);
         setFilteredTemplates(filteredList);
+    };
+    const _closeDialog = () => {
+        setHideDialog(true);
     };
 
     React.useEffect(() => {
@@ -139,6 +242,18 @@ export default function TemplatesView(props: ITemplatesProps) {
                     </>
                 )
             }
+            <Dialog hidden={hideDialog} onDismiss={_closeDialog} maxWidth='700' minWidth='500px'
+                dialogContentProps={{
+                    type: DialogType.close,
+                    title: `${strings.TemplateStructureDialogTitle}`
+                }}
+                modalProps={{
+                    isBlocking: true,
+                    isDarkOverlay: true,
+                    styles: { main: { minWidth: 500, maxHeight: 700 } },
+                }}>
+                <TemplateStructure helper={props.helper} fileurl={fileurl} />
+            </Dialog>
         </div >
     );
 }
