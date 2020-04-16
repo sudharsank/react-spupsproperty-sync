@@ -1,7 +1,7 @@
 import * as React from 'react';
+import styles from './SpupsProperySync.module.scss';
 import { MessageBar, MessageBarType } from 'office-ui-fabric-react/lib/MessageBar';
 import { Text } from 'office-ui-fabric-react/lib/Text';
-import styles from './SpupsProperySync.module.scss';
 import { MessageScope } from '../../../Common/IModel';
 
 export interface IMessageContainerProps {

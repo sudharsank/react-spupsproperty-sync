@@ -1,6 +1,11 @@
 declare interface ISpupsProperySyncWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
+  PropTemplateLibLabel: string;
+  PropAzFuncLabel: string;
+  PropAzFuncDesc: string;
+  PropUseCertLabel: string;
+  PropUseCertCallout: string;
 
   PlaceholderIconText: string;
   PlaceholderDescription: string;
@@ -45,9 +50,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptySearchResults: string;
   UserListChanges: string;
   UserListEmpty: string;
-  JobIntializedSuccess: string;
-
-  PropTemplateLibLabel: string;
+  JobIntializedSuccess: string;  
 }
 
 declare module 'SpupsProperySyncWebPartStrings' {

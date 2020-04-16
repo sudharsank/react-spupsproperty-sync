@@ -1,7 +1,12 @@
 define([], function() {
   return {
-    "PropertyPaneDescription": "",
-    "BasicGroupName": "Config Settings",
+    PropertyPaneDescription: "",
+    BasicGroupName: "Config Settings",
+    PropTemplateLibLabel: "Select a library to store the templates",
+    PropAzFuncLabel: "Azure Function URL",
+    PropAzFuncDesc: "Azure powershell function to update the user profile properties in SharePoint UPS",
+    PropUseCertLabel: "Use Certificate for Azure Function authentication",
+    PropUseCertCallout: "Turn on this option to use certificate for authenticating SharePoint communication via Azure Function",
     
     PlaceholderIconText: "Configure the settings",
     PlaceholderDescription: "Use the configuration settings to map the document library required to store the property mapping templates.",
@@ -46,8 +51,6 @@ define([], function() {
     EmptySearchResults: "Sorry, no data found. Displaying all the data",
     UserListChanges: "Changes in user list, please remove the user from the table manually or reinitialize or get the Azure properties again!",
     UserListEmpty: "Since all the users have been removed, the table has been cleared!",
-    JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!",
-
-    PropTemplateLibLabel: "Select a library to store the templates"
+    JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!"    
   }
 });

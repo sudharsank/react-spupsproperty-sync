@@ -2,8 +2,8 @@ import * as React from 'react';
 import styles from '../SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
-import SPHelper from '../../../../Common/SPHelper';
 import { FileContentType } from '../../../../Common/IModel';
+import SPHelper from '../../../../Common/SPHelper';
 
 export interface ITemplatesStructureProps {
     helper: SPHelper;

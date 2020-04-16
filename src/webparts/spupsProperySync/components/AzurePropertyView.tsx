@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import styles from './SpupsProperySync.module.scss';
+import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
+import { MessageScope } from '../../../Common/IModel';
 import EditableTable from './DynamicTable/EditableTable';
 import MessageContainer from './MessageContainer';
-import { MessageScope } from '../../../Common/IModel';
-import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 
 export interface IAzurePropertyViewProps {
     userProperties: any;

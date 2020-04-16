@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styles from './SpupsProperySync.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
+import { DisplayMode } from '@microsoft/sp-core-library';
 import { WebPartTitle } from "@pnp/spfx-controls-react/lib/WebPartTitle";
 import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
@@ -20,10 +21,10 @@ import AzurePropertyView from './AzurePropertyView';
 import SyncJobsView from './SyncJobs/SyncJobs';
 import TemplatesView from './TemplatesList/TemplatesView';
 import BulkSyncList from './BulkSyncFiles/BulkSyncList';
-import { map } from 'lodash';
-import * as moment from 'moment';
+import * as moment from 'moment/moment';
 import MessageContainer from './MessageContainer';
-import { DisplayMode } from '@microsoft/sp-core-library';
+
+const map: any = require('lodash/map');
 
 export interface ISpupsProperySyncProps {
     context: WebPartContext;
@@ -89,12 +90,11 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     /**
      * Component mount
      */
-    public componentDidMount = async () => {
+    public componentDidMount = async () => {        
         this.initializeHelper();
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
         propertyMappings.map(prop => { prop.IsIncluded = true; });
         this.setState({ propertyMappings });
-        //console.log("pageContext: ", this.props.context.pageContext);
     }
     public componentDidUpdate = (prevProps: ISpupsProperySyncProps) => {
         if (prevProps.templateLib !== this.props.templateLib) {
@@ -363,7 +363,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                 <PivotItem headerText="Sync Jobs" itemKey="4" itemIcon="SyncStatus" headerButtonProps={headerButtonProps}></PivotItem>
                                             </Pivot>
                                             <div style={{ float: "right" }}>
-                                                <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper}
+                                                <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl}
                                                     disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk} />
                                             </div>
                                         </div>

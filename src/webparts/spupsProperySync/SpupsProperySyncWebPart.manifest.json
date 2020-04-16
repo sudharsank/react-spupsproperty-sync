@@ -12,7 +12,7 @@
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
     "group": { "default": "Other" },
     "title": { "default": "SPUPSPropery Sync" },
-    "description": { "default": "Sync Azure AD properties to SharePoint User Profile Properties." },
+    "description": { "default": "Sync Azure AD properties or User defined values (custom properties) to SharePoint User Profile Properties." },
     "officeFabricIconFontName": "UserSync",
     "properties": {
       

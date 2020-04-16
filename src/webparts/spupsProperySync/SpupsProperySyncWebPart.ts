@@ -11,11 +11,9 @@ import { PropertyFieldToggleWithCallout } from '@pnp/spfx-property-controls/lib/
 import { PropertyFieldListPicker, PropertyFieldListPickerOrderBy } from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
 import { sp } from '@pnp/sp';
 import { graph } from "@pnp/graph";
-
 import * as strings from 'SpupsProperySyncWebPartStrings';
 import SpupsProperySync from './components/SpupsProperySync';
 import { ISpupsProperySyncProps } from './components/SpupsProperySync';
-import * as jQuery from 'jquery';
 
 export interface ISpupsProperySyncWebPartProps {
     context: WebPartContext;
@@ -32,9 +30,9 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
         sp.setup(this.context);
         graph.setup({ spfxContext: this.context });
 
-        jQuery("#workbenchPageContent").prop("style", "max-width: none");
-        jQuery(".SPCanvas-canvas").prop("style", "max-width: none");
-        jQuery(".CanvasZone").prop("style", "max-width: none");
+        // jQuery("#workbenchPageContent").prop("style", "max-width: none");
+        // jQuery(".SPCanvas-canvas").prop("style", "max-width: none");
+        // jQuery(".CanvasZone").prop("style", "max-width: none");
     }
 
     public render(): void {
@@ -100,10 +98,10 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                                     listsToExclude: ['Documents']
                                 }),
                                 PropertyPaneTextField('AzFuncUrl', {
-                                    label: 'Azure Function URL',
-                                    description: 'Azure powershell function to update the user profile properties in SharePoint UPS',
+                                    label: strings.PropAzFuncLabel,
+                                    description: strings.PropAzFuncDesc,
                                     multiline: true,
-                                    placeholder: 'Azure Function URL',
+                                    placeholder: strings.PropAzFuncLabel,
                                     resizable: true,
                                     rows: 5,
                                     value: this.properties.AzFuncUrl
@@ -111,8 +109,8 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                                 PropertyFieldToggleWithCallout('UseCert', {
                                     calloutTrigger: CalloutTriggers.Hover,
                                     key: 'UseCertFieldId',
-                                    label: 'Use Certificate for Azure Function authentication',
-                                    calloutContent: React.createElement('p', {}, 'Turn on this option to use certificate for authenticating SharePoint communication via Azure Function'),
+                                    label: strings.PropUseCertLabel,
+                                    calloutContent: React.createElement('div', {}, strings.PropUseCertCallout),
                                     onText: 'ON',
                                     offText: 'OFF',
                                     checked: this.properties.UseCert

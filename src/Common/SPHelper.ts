@@ -8,17 +8,15 @@ import "@pnp/sp/profiles";
 import "@pnp/sp/search";
 import "@pnp/sp/files";
 import "@pnp/sp/folders";
-import { ISearchQuery, SearchResults, SearchQueryBuilder } from "@pnp/sp/search";
 import { graph } from "@pnp/graph";
 import "@pnp/graph/users";
-import * as moment from 'moment';
+import * as moment from 'moment/moment';
 import { IWeb } from "@pnp/sp/webs";
 import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType, SyncType, JobStatus } from "./IModel";
-import * as _ from 'lodash';
 
+const orderBy: any = require('lodash/orderBy');
 
 export interface ISPHelper {
-    demoFunction: () => void;
     getCurrentUserInfo: () => Promise<IUserInfo>;
     getAzurePropertyForUsers: (selectFields: string, filterQuery: string) => Promise<any[]>;
     getPropertyMappings: () => Promise<any[]>;
@@ -38,10 +36,10 @@ export default class SPHelper implements ISPHelper {
     private SiteURL: string = "";
     private SiteRelativeURL: string = "";
     private AdminSiteURL: string = "";
-    private SyncTemplateFilePath: string = "/Shared Documents/SyncJobTemplate/";
-    private SyncUploadFilePath: string = "/Shared Documents/UPSDataToProcess/";
-    private SyncJSONFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.json`;
-    private SyncCSVFileName: string = `SyncTemplate_${moment().format("MM-DD-YYYY-HH-mm-ss")}.csv`;
+    private SyncTemplateFilePath: string = "";
+    private SyncUploadFilePath: string = "";
+    private SyncJSONFileName: string = `SyncTemplate ${moment().format("MMDDYYYYHHmmss")}.json`;
+    private SyncCSVFileName: string = `SyncTemplate ${moment().format("MMDDYYYYHHmmss")}.csv`;
     private _web: IWeb = null;
 
     private Lst_PropsMapping = 'Sync Properties Mapping';
@@ -62,21 +60,12 @@ export default class SPHelper implements ISPHelper {
             this.SyncUploadFilePath = `/${libinfo.Title}/UPSDataToProcess/`;
         }
     }
-
-    public demoFunction = async () => {
-        // let currentUser = await this.getCurrentUserInfo();
-        // console.log(currentUser);
-        let azUserInfo = await graph.users
-            .filter(`userPrincipalName eq 'AdeleV@o365practice.onmicrosoft.com' or userPrincipalName eq 'AlexW@o365practice.onmicrosoft.com'`)
-            .select('employeeId', 'displayName', 'city', 'state').get();
-        console.log(azUserInfo);
-    }
     /**
      * Get the Azure property data for the Users
      */
     public getAzurePropertyForUsers = async (selectFields: string, filterQuery: string): Promise<any[]> => {
         let users = await graph.users.filter(filterQuery).select(selectFields).get();
-        return _.orderBy(users, 'displayName', 'asc');
+        return orderBy(users, 'displayName', 'asc');
     }
     /**
      * Get the property mappings from the 'Sync Properties Mapping' list.

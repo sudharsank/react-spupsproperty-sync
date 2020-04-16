@@ -7,7 +7,9 @@ import { Icon } from 'office-ui-fabric-react/lib/Icon';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { css } from 'office-ui-fabric-react/lib';
 import SPHelper from '../../../../Common/SPHelper';
-import { map, union } from 'lodash';
+
+const map: any = require('lodash/map');
+const union: any = require('lodash/union');
 
 export interface ISyncJobResultsProps {
     helper: SPHelper;

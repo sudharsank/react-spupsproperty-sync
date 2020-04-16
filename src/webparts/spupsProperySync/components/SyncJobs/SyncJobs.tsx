@@ -4,18 +4,20 @@ import * as strings from 'SpupsProperySyncWebPartStrings';
 import { DetailsList, IColumn, DetailsListLayoutMode, ConstrainMode, SelectionMode } from 'office-ui-fabric-react/lib/DetailsList';
 import { IPersonaSharedProps, Persona, PersonaSize } from 'office-ui-fabric-react/lib/Persona';
 import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
-import { Icon } from 'office-ui-fabric-react/lib/Icon';
-import { ActionButton, IIconProps, IconButton } from 'office-ui-fabric-react';
+import { Icon, IIconProps } from 'office-ui-fabric-react/lib/Icon';
+import { ActionButton, IconButton } from 'office-ui-fabric-react/lib/Button';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Dialog, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { css } from 'office-ui-fabric-react/lib';
 import SPHelper from '../../../../Common/SPHelper';
-import * as moment from 'moment';
+import * as moment from 'moment/moment';
 import MessageContainer from '../MessageContainer';
 import { MessageScope } from '../../../../Common/IModel';
 import SyncJobResults from './SyncJobResults';
-import { orderBy, filter } from 'lodash';
+
+const orderBy: any = require('lodash/orderBy');
+const filter: any = require('lodash/filter');
 
 export interface ISyncJobsProps {
     helper: SPHelper;

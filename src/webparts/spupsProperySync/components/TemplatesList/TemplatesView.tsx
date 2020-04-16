@@ -10,12 +10,14 @@ import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Dialog, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { Link } from 'office-ui-fabric-react/lib/Link';
 import { Icon, IconType, IIconProps } from 'office-ui-fabric-react/lib/Icon';
-import * as moment from 'moment';
-import { orderBy, filter } from 'lodash';
+import * as moment from 'moment/moment';
 import SPHelper from '../../../../Common/SPHelper';
 import MessageContainer from '../MessageContainer';
 import { MessageScope, FileContentType } from '../../../../Common/IModel';
 import TemplateStructure from './TemplatesStructure';
+
+const orderBy: any = require('lodash/orderBy');
+const filter: any = require('lodash/filter');
 
 export interface ITemplatesProps {
     helper: SPHelper;
