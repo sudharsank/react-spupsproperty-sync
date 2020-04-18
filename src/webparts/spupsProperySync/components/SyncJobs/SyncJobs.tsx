@@ -21,6 +21,7 @@ const filter: any = require('lodash/filter');
 
 export interface ISyncJobsProps {
     helper: SPHelper;
+    dateFormat: string;
 }
 
 export default function SyncJobsView(props: ISyncJobsProps) {
@@ -79,7 +80,7 @@ export default function SyncJobsView(props: ISyncJobsProps) {
         cols.push({
             key: 'Created', name: 'Created', fieldName: 'Created', minWidth: 150, maxWidth: 150,
             onRender: (item: any, index: number, column: IColumn) => {
-                return (<div>{moment(item.Created).format("DD, MMM YYYY hh:mm A")}</div>);
+                return (<div>{moment(item.Created).format(props.dateFormat)}</div>);
             }
         } as IColumn);
         cols.push({
@@ -127,7 +128,7 @@ export default function SyncJobsView(props: ISyncJobsProps) {
 
     React.useEffect(() => {
         _buildJobsList();
-    }, []);
+    }, [props.dateFormat]);
 
 
     return (

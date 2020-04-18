@@ -1,14 +1,16 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import { Version } from '@microsoft/sp-core-library';
+import { Version, Environment, EnvironmentType } from '@microsoft/sp-core-library';
 import {
     IPropertyPaneConfiguration,
     PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart, WebPartContext } from '@microsoft/sp-webpart-base';
 import { CalloutTriggers } from '@pnp/spfx-property-controls/lib/PropertyFieldHeader';
+import { PropertyFieldLabelWithCallout } from '@pnp/spfx-property-controls/lib/PropertyFieldLabelWithCallout';
 import { PropertyFieldToggleWithCallout } from '@pnp/spfx-property-controls/lib/PropertyFieldToggleWithCallout';
 import { PropertyFieldListPicker, PropertyFieldListPickerOrderBy } from '@pnp/spfx-property-controls/lib/PropertyFieldListPicker';
+import { PropertyPaneWebPartInformation } from '@pnp/spfx-property-controls/lib/PropertyPaneWebPartInformation';
 import { sp } from '@pnp/sp';
 import { graph } from "@pnp/graph";
 import * as strings from 'SpupsProperySyncWebPartStrings';
@@ -21,6 +23,9 @@ export interface ISpupsProperySyncWebPartProps {
     appTitle: string;
     AzFuncUrl: string;
     UseCert: boolean;
+    dateFormat: string;
+    toggleInfoHeaderValue: boolean;
+    useFullWidth: boolean;
 }
 
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
@@ -28,11 +33,7 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
     protected async onInit() {
         await super.onInit();
         sp.setup(this.context);
-        graph.setup({ spfxContext: this.context });
-
-        // jQuery("#workbenchPageContent").prop("style", "max-width: none");
-        // jQuery(".SPCanvas-canvas").prop("style", "max-width: none");
-        // jQuery(".CanvasZone").prop("style", "max-width: none");
+        graph.setup({ spfxContext: this.context });        
     }
 
     public render(): void {
@@ -45,6 +46,8 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                 appTitle: this.properties.appTitle,
                 AzFuncUrl: this.properties.AzFuncUrl,
                 UseCert: this.properties.UseCert,
+                dateFormat: this.properties.dateFormat ? this.properties.dateFormat : "DD, MMM YYYY hh:mm A",
+                useFullWidth: this.properties.useFullWidth,
                 updateProperty: (value: string) => {
                     this.properties.appTitle = value;
                 },
@@ -97,6 +100,10 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                                     baseTemplate: 101,
                                     listsToExclude: ['Documents']
                                 }),
+                                PropertyPaneWebPartInformation({
+                                    description: `${strings.PropInfoTemplateLib}`,
+                                    key: 'templateLibInfoId'
+                                }),
                                 PropertyPaneTextField('AzFuncUrl', {
                                     label: strings.PropAzFuncLabel,
                                     description: strings.PropAzFuncDesc,
@@ -114,7 +121,32 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                                     onText: 'ON',
                                     offText: 'OFF',
                                     checked: this.properties.UseCert
-                                })
+                                }),
+                                PropertyPaneWebPartInformation({
+                                    description: `${strings.PropInfoUseCert}`,
+                                    key: 'useCertInfoId'
+                                }),
+                                PropertyPaneTextField('dateFormat', {
+                                    label: strings.PropDateFormatLabel,
+                                    description: '',
+                                    multiline: false,
+                                    placeholder: strings.PropDateFormatLabel,
+                                    resizable: false,
+                                    value: this.properties.dateFormat
+                                }),
+                                PropertyPaneWebPartInformation({
+                                    description: `${strings.PropInfoDateFormat}`,
+                                    key: 'dateFormatInfoId'
+                                }),
+                                PropertyFieldToggleWithCallout('useFullWidth', {
+                                    //calloutTrigger: CalloutTriggers.Hover,
+                                    key: 'useFullWidthFieldId',
+                                    label: 'Use page full width',
+                                    //calloutContent: React.createElement('div', {}, strings.PropUseCertCallout),
+                                    onText: 'ON',
+                                    offText: 'OFF',
+                                    checked: this.properties.useFullWidth
+                                }),
                             ]
                         }
                     ]

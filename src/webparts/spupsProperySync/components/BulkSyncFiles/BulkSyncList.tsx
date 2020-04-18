@@ -21,6 +21,8 @@ const filter: any = require('lodash/filter');
 
 export interface IBulkSyncListProps {
     helper: SPHelper;
+    siteurl: string;
+    dateFormat: string;
 }
 
 export default function BulkSyncList(props: IBulkSyncListProps) {
@@ -40,17 +42,12 @@ export default function BulkSyncList(props: IBulkSyncListProps) {
 
     const downloadTemplate = async (fileserverurl, filename) => {
         setDownloadLoading(true);
-        let blobContent: any = await props.helper.getFileContent(fileserverurl, FileContentType.Blob);
-        if (window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveBlob(blobContent, filename);
-        } else {
-            const anchor = window.document.createElement('a');
-            anchor.href = window.URL.createObjectURL(blobContent);
-            anchor.download = filename;
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
-        }
+        const anchor = window.document.createElement('a');
+        anchor.href = `${props.siteurl}/_layouts/15/download.aspx?SourceUrl=${fileserverurl}`;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
         setDownloadLoading(false);
     };
     const actionClick = async (data) => {
@@ -106,7 +103,7 @@ export default function BulkSyncList(props: IBulkSyncListProps) {
             key: 'TimeCreated', name: 'Created', fieldName: 'TimeCreated', minWidth: 100, maxWidth: 200,
             onRender: (item: any, index: number, column: IColumn) => {
                 return (
-                    <div>{moment(item.TimeCreated).format("DD, MMM YYYY hh:mm A")}</div>
+                    <div>{moment(item.TimeCreated).format(props.dateFormat)}</div>
                 );
             }
         } as IColumn);
@@ -148,9 +145,9 @@ export default function BulkSyncList(props: IBulkSyncListProps) {
 
     React.useEffect(() => {
         _buildBulkSyncList();
-    }, []);
+    }, [props.dateFormat]);
 
-    return (
+    return (        
         <div className={styles.syncjobsContainer}>
             {loading &&
                 <ProgressIndicator label={strings.PropsLoader} description={strings.BulkSyncListLoaderDesc} />

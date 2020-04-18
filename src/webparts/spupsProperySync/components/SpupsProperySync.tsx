@@ -33,6 +33,8 @@ export interface ISpupsProperySyncProps {
     appTitle: string;
     AzFuncUrl: string;
     UseCert: boolean;
+    dateFormat: string;
+    useFullWidth: boolean;
     openPropertyPane: () => void;
     updateProperty: (value: string) => void;
 }
@@ -57,6 +59,8 @@ export interface ISpupsProperySyncState {
     reloadGetProperties: boolean;
     helper: SPHelper;
     selectedMenu?: string;
+    globalMessage: string;
+    noActivePropertyMappings: boolean;
 }
 
 export default class SpupsProperySync extends React.Component<ISpupsProperySyncProps, ISpupsProperySyncState> {
@@ -84,24 +88,43 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             azurePropertyData: [],
             reloadGetProperties: false,
             helper: null,
-            selectedMenu: '0'
+            selectedMenu: '0',
+            globalMessage: '',
+            noActivePropertyMappings: true
         };
     }
     /**
      * Component mount
      */
-    public componentDidMount = async () => {        
+    public componentDidMount = async () => {
+        this._useFullWidth();
         this.initializeHelper();
         let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
+        let globalMessage: string = "";
+        let noActivePropertyMappings: boolean = true;
+        if (propertyMappings.length <= 0) {
+            globalMessage = strings.EmptyPropertyMappings;
+            noActivePropertyMappings = true;
+        } else {
+            globalMessage = "";
+            noActivePropertyMappings = false;
+        }
         propertyMappings.map(prop => { prop.IsIncluded = true; });
-        this.setState({ propertyMappings });
+        this.setState({ propertyMappings, globalMessage, noActivePropertyMappings, disablePropsButtons: noActivePropertyMappings });
     }
+    /**
+     * Component update
+     */
     public componentDidUpdate = (prevProps: ISpupsProperySyncProps) => {
         if (prevProps.templateLib !== this.props.templateLib) {
             this.initializeHelper();
         }
-        if (prevProps.appTitle !== this.props.appTitle) this.render();
+        if (prevProps.appTitle !== this.props.appTitle || prevProps.dateFormat !== this.props.dateFormat) this.render();
+        if (prevProps.useFullWidth !== this.props.useFullWidth) this._useFullWidth();
     }
+    /**
+     * Initialize the helper with required arguments.
+     */
     private initializeHelper = () => {
         this.helper = new SPHelper(this.props.context.pageContext.legacyPageContext.siteAbsoluteUrl,
             this.props.context.pageContext.legacyPageContext.tenantDisplayName,
@@ -110,6 +133,17 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             this.props.templateLib
         );
         this.setState({ helper: this.helper });
+    }
+    /**
+     * Use full width
+     */
+    private _useFullWidth = () => {
+        if (this.props.useFullWidth) {
+            const jQuery: any = require('jquery');
+            jQuery("#workbenchPageContent").prop("style", "max-width: none");
+            jQuery(".SPCanvas-canvas").prop("style", "max-width: none");
+            jQuery(".CanvasZone").prop("style", "max-width: none");
+        }
     }
     /**
      * Triggers when the users are selected for manual update
@@ -200,7 +234,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let filecontent: any = null;
         if (uploadedTemplate && uploadedTemplate.fileName) {
             let ext: string = uploadedTemplate.fileName.split('.').pop();
-            let filename: string = `${uploadedTemplate.fileNameWithoutExtension}_${moment().format("MM-DD-YYYY-HH-mm-ss")}.${ext}`;
+            let filename: string = `${uploadedTemplate.fileNameWithoutExtension}_${moment().format("MMDDYYYYHHmmss")}.${ext}`;
             if (uploadedTemplate.fileAbsoluteUrl && null !== uploadedTemplate.fileAbsoluteUrl) {
                 let filerelativeurl: string = "";
                 if (uploadedTemplate.fileAbsoluteUrl.indexOf(this.props.context.pageContext.legacyPageContext.webAbsoluteUrl) >= 0) {
@@ -334,7 +368,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         const { templateLib, displayMode, appTitle } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
             azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu, updatePropsLoader_Manual, updatePropsLoader_Azure,
-            updatePropsLoader_Bulk, clearData } = this.state;
+            updatePropsLoader_Bulk, clearData, globalMessage, noActivePropertyMappings } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         const showConfig = !templateLib ? true : false;
@@ -355,6 +389,11 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                             ) : (
                                     <>
                                         <div>
+                                            {globalMessage.length > 0 &&
+                                                <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+                                                    <MessageContainer MessageScope={MessageScope.Failure} Message={globalMessage} />
+                                                </div>
+                                            }
                                             <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
                                                 <PivotItem headerText="Manual or Azure Property Sync" itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
                                                 <PivotItem headerText="Bulk Sync" itemKey="1" itemIcon="BulkUpload" headerButtonProps={headerButtonProps}></PivotItem>
@@ -364,7 +403,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                             </Pivot>
                                             <div style={{ float: "right" }}>
                                                 <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl}
-                                                    disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk} />
+                                                    disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings} />
                                             </div>
                                         </div>
                                         {selectedMenu == "0" &&
@@ -430,7 +469,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                         onSave={this._onSaveTemplate}
                                                         onChanged={this._onChangeTemplate}
                                                         context={this.props.context}
-                                                        disabled={showUploadProgress || updatePropsLoader_Bulk}
+                                                        disabled={showUploadProgress || updatePropsLoader_Bulk || noActivePropertyMappings}
                                                         buttonLabel={"Select Data file"}
                                                         hideLinkUploadTab={true}
                                                         hideOrganisationalAssetTab={true}
@@ -460,17 +499,17 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                         }
                                         {selectedMenu == "2" &&
                                             <div className={css(styles.menuContent)}>
-                                                <BulkSyncList helper={this.state.helper} />
+                                                <BulkSyncList helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl} dateFormat={this.props.dateFormat} />
                                             </div>
                                         }
                                         {selectedMenu == "3" &&
                                             <div className={css(styles.menuContent)}>
-                                                <TemplatesView helper={this.state.helper} />
+                                                <TemplatesView helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl} dateFormat={this.props.dateFormat} />
                                             </div>
                                         }
                                         {selectedMenu == "4" &&
                                             <div className={css(styles.menuContent)}>
-                                                <SyncJobsView helper={this.state.helper} />
+                                                <SyncJobsView helper={this.state.helper} dateFormat={this.props.dateFormat} />
                                             </div>
                                         }
                                     </>

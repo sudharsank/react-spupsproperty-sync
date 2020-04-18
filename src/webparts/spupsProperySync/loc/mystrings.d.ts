@@ -6,6 +6,10 @@ declare interface ISpupsProperySyncWebPartStrings {
   PropAzFuncDesc: string;
   PropUseCertLabel: string;
   PropUseCertCallout: string;
+  PropDateFormatLabel: string;
+  PropInfoDateFormat: string;
+  PropInfoUseCert: string;
+  PropInfoTemplateLib: string;
 
   PlaceholderIconText: string;
   PlaceholderDescription: string;
@@ -43,6 +47,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   TblColHeadEnableDisable: string;
   PPLPickerTitleText: string;
 
+  EmptyPropertyMappings: string;
+  TemplateDownloaded: string;
   EmptyDataText: string;
   EmptyDataWarningMsg: string;
   EmptyTable: string;

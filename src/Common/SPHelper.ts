@@ -38,8 +38,8 @@ export default class SPHelper implements ISPHelper {
     private AdminSiteURL: string = "";
     private SyncTemplateFilePath: string = "";
     private SyncUploadFilePath: string = "";
-    private SyncJSONFileName: string = `SyncTemplate ${moment().format("MMDDYYYYHHmmss")}.json`;
-    private SyncCSVFileName: string = `SyncTemplate ${moment().format("MMDDYYYYHHmmss")}.csv`;
+    private SyncJSONFileName: string = `SyncTemplate_${moment().format("MMDDYYYYHHmmss")}.json`;
+    private SyncCSVFileName: string = `SyncTemplate_${moment().format("MMDDYYYYHHmmss")}.csv`;
     private _web: IWeb = null;
 
     private Lst_PropsMapping = 'Sync Properties Mapping';

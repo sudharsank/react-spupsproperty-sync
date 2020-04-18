@@ -6,9 +6,10 @@ import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import SPHelper from '../../../../Common/SPHelper';
-import { IPropertyMappings, FileContentType } from '../../../../Common/IModel';
+import { IPropertyMappings, FileContentType, MessageScope } from '../../../../Common/IModel';
 import PropertyMappingItem from './PropertyMappingItem';
 import { parse } from 'json2csv';
+import MessageContainer from '../MessageContainer';
 
 const filter: any = require('lodash/filter');
 
@@ -30,6 +31,8 @@ export interface IPropertyMappingState {
 	showProgress: boolean;
 	disableButtons: boolean;
 	disableMappingButton: boolean;
+	globalMessage: string;
+	globalMessageScope?: MessageScope;
 }
 
 export default class PropertyMappingList extends React.Component<IPropertyMappingProps, IPropertyMappingState> {
@@ -47,16 +50,16 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 			templateFileName: '',
 			showProgress: false,
 			disableButtons: false,
-			disableMappingButton: false
+			disableMappingButton: false,
+			globalMessage: ""
 		};
 	}
 	/**
 	 * Component mount
 	 */
 	public componentDidMount = () => {
-		this.setState({
-			templateProperties: this.getDefaultTemplateProperties(),
-		});
+		let templateProperties: IPropertyMappings[] = this.getDefaultTemplateProperties();
+		this.setState({ templateProperties });
 	}
 	/**
 	 * Component updated
@@ -64,8 +67,9 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	public componentDidUpdate = (prevProps: IPropertyMappingProps) => {
 		if (prevProps.mappingProperties !== this.props.mappingProperties ||
 			prevProps.disabled !== this.props.disabled) {
+			let templateProperties: IPropertyMappings[] = this.getDefaultTemplateProperties();
 			this.setState({
-				templateProperties: this.getDefaultTemplateProperties(),
+				templateProperties,
 				disableMappingButton: this.props.disabled
 			});
 		}
@@ -74,7 +78,12 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 * Get the property mappings from the props
 	 */
 	private getDefaultTemplateProperties = () => {
-		return this.props.mappingProperties;
+		let defaultProps: IPropertyMappings[] = this.props.mappingProperties;
+		let globalMessage: string = "";
+		if (defaultProps.length <= 0) globalMessage = strings.EmptyPropertyMappings;
+		else globalMessage = "";
+		this.setState({ globalMessage, globalMessageScope: MessageScope.Failure, disableButtons: globalMessage.length > 0, disableMappingButton: globalMessage.length > 0 });
+		return defaultProps;
 	}
 	/**
 	 * Update the property mappings state by enabling or disabling the property
@@ -156,24 +165,29 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 */
 	private getTemplateFile = async () => {
 		const anchor = window.document.createElement('a');
-        anchor.href = `${this.props.siteurl}/_layouts/15/download.aspx?SourceUrl=${this.state.downloadLink}`;
-        anchor.download = this.state.templateFileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-		this.setState({ disableButtons: false, showProgress: false });
+		anchor.href = `${this.props.siteurl}/_layouts/15/download.aspx?SourceUrl=${this.state.downloadLink}`;
+		anchor.download = this.state.templateFileName;
+		document.body.appendChild(anchor);
+		anchor.click();
+		document.body.removeChild(anchor);
+		this.setState({ disableButtons: false, showProgress: false, globalMessage: strings.TemplateDownloaded, globalMessageScope: MessageScope.Success });
 	}
 	/**
 	 * Component render
 	 */
 	public render(): JSX.Element {
-		const { isOpen, templateProperties, disableMappingButton } = this.state;
+		const { isOpen, templateProperties, disableMappingButton, globalMessage, globalMessageScope } = this.state;
 		return (
 			<div className={styles.propertyMappingList}>
 				<PrimaryButton text={strings.BtnPropertyMapping} onClick={this._openPropertyMappingPanel} disabled={disableMappingButton} />
 				<Panel isOpen={isOpen} onDismiss={this._dismissPanel} type={PanelType.largeFixed} closeButtonAriaLabel="Close" headerText={strings.PnlHeaderText}
 					headerClassName={styles.panelHeader} isFooterAtBottom={true} onRenderFooterContent={this._onRenderPanelFooterContent}>
 					<div className={styles.propertyMappingPanelContent}>
+						{globalMessage.length > 0 &&
+							<div style={{ marginTop: '10px', marginBottom: '10px' }}>
+								<MessageContainer MessageScope={globalMessageScope} Message={globalMessage} />
+							</div>
+						}
 						<div className={styles.mappingcontainer} data-is-focusable={true} style={{ marginBottom: '10px' }}>
 							<div className={styles.propertytitlediv}>{strings.TblColHeadAzProperty}</div>
 							<div className={styles.separator}>&nbsp;</div>

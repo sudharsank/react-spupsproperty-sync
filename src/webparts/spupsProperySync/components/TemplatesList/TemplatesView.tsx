@@ -21,6 +21,8 @@ const filter: any = require('lodash/filter');
 
 export interface ITemplatesProps {
     helper: SPHelper;
+    siteurl: string;
+    dateFormat: string;
 }
 
 export default function TemplatesView(props: ITemplatesProps) {
@@ -40,17 +42,12 @@ export default function TemplatesView(props: ITemplatesProps) {
 
     const downloadTemplate = async (fileserverurl, filename) => {
         setDownloadLoading(true);
-        let blobContent: any = await props.helper.getFileContent(fileserverurl, FileContentType.Blob);
-        if (window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveBlob(blobContent, filename);
-        } else {
-            const anchor = window.document.createElement('a');
-            anchor.href = window.URL.createObjectURL(blobContent);
-            anchor.download = filename;
-            document.body.appendChild(anchor);
-            anchor.click();
-            document.body.removeChild(anchor);
-        }
+        const anchor = window.document.createElement('a');
+        anchor.href = `${props.siteurl}/_layouts/15/download.aspx?SourceUrl=${fileserverurl}`;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
         setDownloadLoading(false);
     };
     const actionClick = async (data) => {
@@ -106,7 +103,7 @@ export default function TemplatesView(props: ITemplatesProps) {
             key: 'TimeCreated', name: 'Created', fieldName: 'TimeCreated', minWidth: 100, maxWidth: 200,
             onRender: (item: any, index: number, column: IColumn) => {
                 return (
-                    <div>{moment(item.TimeCreated).format("DD, MMM YYYY hh:mm A")}</div>
+                    <div>{moment(item.TimeCreated).format(props.dateFormat)}</div>
                 );
             }
         } as IColumn);
@@ -148,7 +145,7 @@ export default function TemplatesView(props: ITemplatesProps) {
 
     React.useEffect(() => {
         _buildTemplatesList();
-    }, []);
+    }, [props.dateFormat]);
 
     return (
         <div className={styles.templatesContainer}>

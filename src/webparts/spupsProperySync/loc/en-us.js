@@ -1,12 +1,16 @@
 define([], function() {
   return {
     PropertyPaneDescription: "",
-    BasicGroupName: "Config Settings",
+    BasicGroupName: "Configurations",
     PropTemplateLibLabel: "Select a library to store the templates",
     PropAzFuncLabel: "Azure Function URL",
     PropAzFuncDesc: "Azure powershell function to update the user profile properties in SharePoint UPS",
     PropUseCertLabel: "Use Certificate for Azure Function authentication",
     PropUseCertCallout: "Turn on this option to use certificate for authenticating SharePoint communication via Azure Function",
+    PropDateFormatLabel: "Date format",
+    PropInfoDateFormat: "The date format use <strong>momentjs</strong> date format. Please <a href='https://momentjs.com/docs/#/displaying/format/' target='_blank'>click here</a> to get more info on how to define the format. By default the format is '<strong>DD, MMM YYYY hh:mm A</strong>'",
+    PropInfoUseCert: "Please <a href='https://www.youtube.com/watch?v=plS_1BsQAto&list=PL-KKED6SsFo8TxDgQmvMO308p51AO1zln&index=2&t=0s' target='_blank'>click here</a> to see how to create Azure powershell function with different authentication mechanism.",
+    PropInfoTemplateLib: "Document library to maintain the templates and batch files uploaded. </br>'<strong>SyncJobTemplate</strong>' folder will be created to maintain the templates.</br>'<strong>UPSDataToProcess</strong>' folder will be created to maintain the files uploaded for bulk sync.",
     
     PlaceholderIconText: "Configure the settings",
     PlaceholderDescription: "Use the configuration settings to map the document library required to store the property mapping templates.",
@@ -44,6 +48,8 @@ define([], function() {
     TblColHeadEnableDisable: "Enabled/Disabled",
     PPLPickerTitleText: "Select users to update their properties",
 
+    EmptyPropertyMappings: "No active property mappings found. Please navigate to 'Sync Properties Mapping' list or contact your administrator to activate the properties.",
+    TemplateDownloaded: "Please use the downloaded file to update the User properties!",
     EmptyDataText: "Empty!",
     EmptyDataWarningMsg: "Columns with empty values are not considered for update!",
     EmptyTable: "Sorry, no data to be displayed!",
