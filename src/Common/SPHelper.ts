@@ -4,6 +4,8 @@ import "@pnp/sp/webs";
 import "@pnp/sp/site-users/web";
 import "@pnp/sp/lists/web";
 import "@pnp/sp/items/list";
+import "@pnp/sp/fields/list";
+import "@pnp/sp/views/list";
 import "@pnp/sp/profiles";
 import "@pnp/sp/search";
 import "@pnp/sp/files";
@@ -13,6 +15,9 @@ import "@pnp/graph/users";
 import * as moment from 'moment/moment';
 import { IWeb } from "@pnp/sp/webs";
 import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType, SyncType, JobStatus } from "./IModel";
+import { IList } from '@pnp/sp/lists';
+import { boolFormatter } from './Constants';
+import { ChoiceFieldFormatType } from '@pnp/sp/fields/types';
 
 const orderBy: any = require('lodash/orderBy');
 
@@ -173,6 +178,7 @@ export default class SPHelper implements ISPHelper {
             Email: currentUserInfo.Email,
             LoginName: currentUserInfo.LoginName,
             DisplayName: currentUserInfo.Title,
+            IsSiteAdmin: currentUserInfo.IsSiteAdmin,
             Picture: '/_layouts/15/userphoto.aspx?size=S&username=' + currentUserInfo.UserPrincipalName,
         });
     }
@@ -217,6 +223,89 @@ export default class SPHelper implements ISPHelper {
             .select('Name', 'ServerRelativeUrl', 'TimeCreated')
             .expand('Author')
             .get();
+    }
+    /**
+     * Check and create the required lists
+     */
+    public checkAndCreateLists = async (): Promise<boolean> => {
+        return new Promise<boolean>(async (res, rej) => {
+            try {
+                await this._web.lists.getByTitle(this.Lst_PropsMapping).get();
+                console.log('Property Mapping List Exists');
+                // let listExists = await (await sp.web.lists.ensure('Prop Map')).list;
+                // await listExists.fields.createFieldAsXml(`<Field DisplayName="MyField4" Type="Boolean" Required="TRUE" StaticName="MyField4" Name="MyField4" />`);
+                // console.log("created");
+            } catch (err) {
+                console.log("Property Mapping List doesn't exists, so creating");
+                await this._createPropsMappingList();
+                console.log("Property Mapping List created");
+            }
+            try {
+                await this._web.lists.getByTitle(this.Lst_SyncJobs).get();
+                console.log('Sync Jobs List Exists');
+            } catch (err) {
+                console.log("Sync Jobs List doesn't exists, so creating");
+                await this._createSyncJobsList();
+                console.log("Sync Jobs List created");
+            }
+            console.log("Checked all lists");
+            res(true);
+        });
+    }
+    /**
+     * Create Sync Jobs list
+     */
+    public _createSyncJobsList = async () => {
+        let listExists = await (await sp.web.lists.ensure(this.Lst_SyncJobs)).list;
+        await listExists.fields.addMultilineText('SyncData', 6, false, false, false, false, {Required: true, Description: 'Data sent to Azure function for property update.'});
+        await listExists.fields.addMultilineText('SyncedData', 6, false, false, false, false, {Required: true, Description: 'Data received from Azure function with property update status.'});
+        await listExists.fields.addChoice('Status', ['Submitted','In-Progress','Completed','Error'], ChoiceFieldFormatType.Dropdown, false, {Required: true, Description: 'Status of the job.'});
+        await listExists.fields.addChoice('SyncType', ['Manual','Azure','Template'], ChoiceFieldFormatType.Dropdown, false, {Required: true, Description: 'Type of data sent to Azure function.'});
+        let allItemsView = await listExists.views.getByTitle('All Items');
+        let batch = sp.createBatch();
+        allItemsView.fields.inBatch(batch).add('ID');
+        allItemsView.fields.inBatch(batch).add('SyncData');
+        allItemsView.fields.inBatch(batch).add('SyncedData');
+        allItemsView.fields.inBatch(batch).add('Status');
+        allItemsView.fields.inBatch(batch).add('SyncType');
+        allItemsView.fields.inBatch(batch).move('ID', 0);
+        await batch.execute();
+    }
+    /**
+     * Create property mapping list
+     */
+    public _createPropsMappingList = async () => {
+        let listExists = await (await sp.web.lists.ensure(this.Lst_PropsMapping)).list;
+        await listExists.fields.addText('AzProperty', 255, { Required: true, Description: 'Azure user profile property name.' });
+        await listExists.fields.addText('SPProperty', 255, { Required: true, Description: 'SharePoint User Profile property name.' });
+        await listExists.fields.addBoolean('IsActive', { Required: true, Description: 'Active or InActive used for mapping by the end users.' });
+        await listExists.fields.addBoolean('AutoSync', { Required: true, Description: 'Properties that are automatically synced with Azure.' });
+        let allItemsView = await listExists.views.getByTitle('All Items');
+        let batch = sp.createBatch();
+        allItemsView.fields.inBatch(batch).add('AzProperty');
+        allItemsView.fields.inBatch(batch).add('SPProperty');
+        allItemsView.fields.inBatch(batch).add('IsActive');
+        allItemsView.fields.inBatch(batch).add('AutoSync');
+        await batch.execute();
+        await this._createDefaultPropsMapping(listExists);
+    }
+    /**
+     * Create default property mapping items
+     */
+    public _createDefaultPropsMapping = async (lst: IList) => {
+        let batch = sp.createBatch();
+        lst.items.inBatch(batch).add({ Title: 'Department', AzProperty: 'department', SPProperty: 'Department', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Job Title', AzProperty: 'jobTitle', SPProperty: 'Title', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Office', AzProperty: 'officeLocation', SPProperty: 'Office', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Business Phone', AzProperty: 'businessPhones', SPProperty: 'workPhone', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Mobile Phone', AzProperty: 'mobilePhone', SPProperty: 'CellPhone', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Fax Number', AzProperty: 'faxNumber', SPProperty: 'Fax', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Street Address', AzProperty: 'streetAddress', SPProperty: 'StreetAddress', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'City', AzProperty: 'city', SPProperty: 'City', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'State or Province', AzProperty: 'state', SPProperty: 'State', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Zip or Postal code', AzProperty: 'postalCode', SPProperty: 'PostalCode', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Country or Region', AzProperty: 'country', SPProperty: 'Country', IsActive: true, AutoSync: true });
+        await batch.execute();
     }
 
     protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";

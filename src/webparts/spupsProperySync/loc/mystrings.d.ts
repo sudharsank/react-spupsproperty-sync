@@ -1,6 +1,7 @@
 declare interface ISpupsProperySyncWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
+  ListCreationText: string;
   PropTemplateLibLabel: string;
   PropAzFuncLabel: string;
   PropAzFuncDesc: string;
@@ -10,6 +11,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   PropInfoDateFormat: string;
   PropInfoUseCert: string;
   PropInfoTemplateLib: string;
+  PropInfoNormalUser: string;
+  PropAllowedUserInfo: string;
 
   PlaceholderIconText: string;
   PlaceholderDescription: string;
