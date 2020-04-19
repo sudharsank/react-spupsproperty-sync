@@ -34,6 +34,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   TemplateListLoaderDesc: string;  
   TemplatePropsLoaderDesc: string;
   BulkSyncListLoaderDesc: string;
+  AccessCheckDesc: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;
@@ -59,7 +60,15 @@ declare interface ISpupsProperySyncWebPartStrings {
   EmptySearchResults: string;
   UserListChanges: string;
   UserListEmpty: string;
-  JobIntializedSuccess: string;  
+  JobIntializedSuccess: string;
+  AdminConfigHelp: string;
+  AccessDenied: string;
+
+  TabMenu1: string;
+  TabMenu2: string;
+  TabMenu3: string;
+  TabMenu4: string;
+  TabMenu5: string;  
 }
 
 declare module 'SpupsProperySyncWebPartStrings' {

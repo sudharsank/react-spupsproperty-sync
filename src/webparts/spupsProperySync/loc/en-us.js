@@ -13,7 +13,7 @@ define([], function() {
     PropInfoUseCert: "Please <a href='https://www.youtube.com/watch?v=plS_1BsQAto&list=PL-KKED6SsFo8TxDgQmvMO308p51AO1zln&index=2&t=0s' target='_blank'>click here</a> to see how to create Azure powershell function with different authentication mechanism.",
     PropInfoTemplateLib: "Document library to maintain the templates and batch files uploaded. </br>'<strong>SyncJobTemplate</strong>' folder will be created to maintain the templates.</br>'<strong>UPSDataToProcess</strong>' folder will be created to maintain the files uploaded for bulk sync.",
     PropInfoNormalUser: "Sorry, the configuration is enabled only for the site administrators, please contact your site administrator!",
-    PropAllowedUserInfo: "Only SharePoint groups are allowed in this setting. Only memebers of the SharePoint groups defined above will have access to this web part.",
+    PropAllowedUserInfo: "Only SharePoint groups are allowed in this setting. Only memebers of the SharePoint groups defined above will have access to this web part.",    
     
     PlaceholderIconText: "Configure the settings",
     PlaceholderDescription: "Use the configuration settings to map the document library required to store the property mapping templates.",
@@ -35,6 +35,7 @@ define([], function() {
     TemplatePropsLoaderDesc: "Loading properties, please wait...",
     BulkSyncListLoaderDesc: "Loading the bulk sync files...",
     BulkSyncFileDataLoaderDesc: "Loading data, please wait...",
+    AccessCheckDesc: "Checking for access...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",
@@ -60,6 +61,14 @@ define([], function() {
     EmptySearchResults: "Sorry, no data found. Displaying all the data",
     UserListChanges: "Changes in user list, please remove the user from the table manually or reinitialize or get the Azure properties again!",
     UserListEmpty: "Since all the users have been removed, the table has been cleared!",
-    JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!"    
+    JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!",
+    AdminConfigHelp: "Please contact your site administrator to configure the webpart.",
+    AccessDenied: "Access denied. Please contact your administrator.",
+
+    TabMenu1: "Manual or Azure Property Sync",
+    TabMenu2: "Bulk Sync",
+    TabMenu3: "Bulk Files Uploaded",
+    TabMenu4: "Templates Generated",
+    TabMenu5: "Sync Status"
   }
 });

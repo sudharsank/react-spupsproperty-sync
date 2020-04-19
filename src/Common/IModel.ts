@@ -35,6 +35,7 @@ export interface IUserInfo {
 	DisplayName: string;
 	Picture: string;
 	IsSiteAdmin: boolean;
+	Groups: string[];
 }
 
 export interface IPropertyMappings {

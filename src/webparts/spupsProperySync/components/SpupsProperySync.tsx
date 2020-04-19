@@ -44,6 +44,8 @@ export interface ISpupsProperySyncProps {
 export interface ISpupsProperySyncState {
     listExists: boolean;
     isSiteAdmin: boolean;
+    loading: boolean;
+    accessDenied: boolean;
     propertyMappings: IPropertyMappings[];
     uploadedTemplate?: IFilePickerResult;
     uploadedFileURL?: string;
@@ -79,6 +81,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.state = {
             listExists: false,
             isSiteAdmin: false,
+            loading: true,
+            accessDenied: false,
             propertyMappings: [],
             showUploadData: false,
             showUploadProgress: false,
@@ -106,25 +110,36 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this._useFullWidth();
         this.initializeHelper();
         let currentUserInfo = await this.helper.getCurrentUserInfo();
-        if(currentUserInfo.IsSiteAdmin) {
-            this.setState({isSiteAdmin: true});
+        if (currentUserInfo.IsSiteAdmin) {
+            this.setState({ isSiteAdmin: true });
+            console.log('Site Admin');
             this._checkAndCreateLists();
         } else {
-            console.log("mount: ", this.props.allowedUsers);
-        }        
+            let allowedGroups: string[] = map(this.props.allowedUsers, 'login');
+            let accessAllowed: boolean = this.helper.checkCurrentUserGroup(allowedGroups, currentUserInfo.Groups);
+            console.log(accessAllowed);
+            if (accessAllowed) {
+                console.log("Allowed Users");
+                this._checkAndCreateLists();
+            } else {
+                this.setState({ loading: false, accessDenied: true });
+                console.log("Access denied");
+            }
+        }
     }
     /**
      * Component update
      */
     public componentDidUpdate = (prevProps: ISpupsProperySyncProps) => {
         if (prevProps.templateLib !== this.props.templateLib) this.initializeHelper();
-        if (prevProps.appTitle !== this.props.appTitle || prevProps.dateFormat !== this.props.dateFormat || this.props.allowedUsers) this.render();
+        //if (prevProps.appTitle !== this.props.appTitle || prevProps.dateFormat !== this.props.dateFormat || this.props.allowedUsers) this.render();
         if (prevProps.useFullWidth !== this.props.useFullWidth) this._useFullWidth();
     }
     /**
      * Check and create the required list
      */
     public _checkAndCreateLists = async () => {
+        this.setState({ loading: false });
         let listExists = await this.helper.checkAndCreateLists();
         if (listExists) {
             let propertyMappings: IPropertyMappings[] = await this.helper.getPropertyMappings();
@@ -384,11 +399,10 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Component render
      */
     public render(): React.ReactElement<ISpupsProperySyncProps> {
-        console.log(this.props.allowedUsers);
         const { templateLib, displayMode, appTitle } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
             azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu, updatePropsLoader_Manual, updatePropsLoader_Azure,
-            updatePropsLoader_Bulk, clearData, globalMessage, noActivePropertyMappings, listExists, isSiteAdmin } = this.state;
+            updatePropsLoader_Bulk, clearData, globalMessage, noActivePropertyMappings, listExists, isSiteAdmin, loading, accessDenied } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         const showConfig = !templateLib ? true : false;
@@ -403,149 +417,160 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                 <>
                                     {isSiteAdmin ? (
                                         <Placeholder iconName='DataManagementSettings'
-                                        iconText={strings.PlaceholderIconText}
-                                        description={strings.PlaceholderDescription}
-                                        buttonLabel={strings.PlaceholderButtonLabel}
-                                        hideButton={displayMode === DisplayMode.Read}
-                                        onConfigure={this.props.openPropertyPane} />
+                                            iconText={strings.PlaceholderIconText}
+                                            description={strings.PlaceholderDescription}
+                                            buttonLabel={strings.PlaceholderButtonLabel}
+                                            hideButton={displayMode === DisplayMode.Read}
+                                            onConfigure={this.props.openPropertyPane} />
                                     ) : (
-                                        <MessageContainer MessageScope={MessageScope.SevereWarning} Message={"Please contact your site administrator to configure the webpart"} />
-                                    )}
-                                </>                                
+                                            <MessageContainer MessageScope={MessageScope.SevereWarning} Message={strings.AdminConfigHelp} />
+                                        )}
+                                </>
                             ) : (
                                     <>
-                                        {!listExists ? (
-                                            <ProgressIndicator label={strings.ListCreationText} description={strings.PropsLoader} />
+                                        {loading ? (
+                                            <ProgressIndicator label={strings.AccessCheckDesc} description={strings.PropsLoader} />
                                         ) : (
                                                 <>
-                                                    <div>
-                                                        {globalMessage.length > 0 &&
-                                                            <div style={{ marginTop: '10px', marginBottom: '10px' }}>
-                                                                <MessageContainer MessageScope={MessageScope.Failure} Message={globalMessage} />
-                                                            </div>
-                                                        }
-                                                        <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
-                                                            <PivotItem headerText="Manual or Azure Property Sync" itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
-                                                            <PivotItem headerText="Bulk Sync" itemKey="1" itemIcon="BulkUpload" headerButtonProps={headerButtonProps}></PivotItem>
-                                                            <PivotItem headerText="Uploaded Content Files" itemKey="2" itemIcon="StackIndicator" headerButtonProps={headerButtonProps}></PivotItem>
-                                                            <PivotItem headerText="Templates Generated" itemKey="3" itemIcon="FileTemplate" headerButtonProps={headerButtonProps}></PivotItem>
-                                                            <PivotItem headerText="Sync Jobs" itemKey="4" itemIcon="SyncStatus" headerButtonProps={headerButtonProps}></PivotItem>
-                                                        </Pivot>
-                                                        <div style={{ float: "right" }}>
-                                                            <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl}
-                                                                disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings} />
-                                                        </div>
-                                                    </div>
-                                                    {selectedMenu == "0" &&
-                                                        <div className={css(styles.menuContent)}>
-                                                            <PeoplePicker
-                                                                disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure}
-                                                                context={this.props.context}
-                                                                titleText={strings.PPLPickerTitleText}
-                                                                personSelectionLimit={10}
-                                                                groupName={""} // Leave this blank in case you want to filter from all users
-                                                                showtooltip={false}
-                                                                isRequired={false}
-                                                                selectedItems={this._getPeoplePickerItems}
-                                                                showHiddenInUI={false}
-                                                                principalTypes={[PrincipalType.User]}
-                                                                resolveDelay={500}
-                                                                defaultSelectedUsers={selectedUsers.length > 0 ? this._getSelectedUsersLoginNames(selectedUsers) : []} />
-                                                            {reloadGetProperties ? (
-                                                                <>
-                                                                    {selectedUsers.length > 0 &&
-                                                                        <div>
-                                                                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListChanges} />
-                                                                        </div>
-                                                                    }
-                                                                    {selectedUsers.length <= 0 && !clearData &&
-                                                                        <div>
-                                                                            <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} ShowDismiss={true} />
-                                                                        </div>
-                                                                    }
-                                                                </>
-                                                            ) : (
-                                                                    <></>
-                                                                )
-                                                            }
-                                                            {selectedUsers && selectedUsers.length > 0 &&
-                                                                <div style={{ marginTop: "5px" }}>
-                                                                    <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }}
-                                                                        disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
-                                                                    <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable}
-                                                                        disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
-                                                                    {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
-                                                                </div>
-                                                            }
-                                                            {manualPropertyData && manualPropertyData.length > 0 &&
-                                                                <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties}
-                                                                    showProgress={updatePropsLoader_Manual} />
-                                                            }
-                                                            {azurePropertyData && azurePropertyData.length > 0 &&
-                                                                <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties}
-                                                                    showProgress={updatePropsLoader_Azure} />
-                                                            }
-                                                            {clearData &&
-                                                                <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
-                                                            }
-                                                        </div>
-                                                    }
-                                                    {selectedMenu == "1" &&
-                                                        <div className={css(styles.menuContent)}>
-                                                            <div>
-                                                                <FilePicker
-                                                                    accepts={[".json", ".csv"]}
-                                                                    buttonIcon="FileImage"
-                                                                    onSave={this._onSaveTemplate}
-                                                                    onChanged={this._onChangeTemplate}
-                                                                    context={this.props.context}
-                                                                    disabled={showUploadProgress || updatePropsLoader_Bulk || noActivePropertyMappings}
-                                                                    buttonLabel={"Select Data file"}
-                                                                    hideLinkUploadTab={true}
-                                                                    hideOrganisationalAssetTab={true}
-                                                                    hideWebSearchTab={true}
-                                                                />
-                                                            </div>
-                                                            {fileurl &&
-                                                                <div style={{ color: "black", padding: '10px' }}>
-                                                                    <FileTypeIcon type={IconType.font} path={fileurl} />
-                                                &nbsp;{uploadedTemplate.fileName}
-                                                                </div>
-                                                            }
-                                                            {showUploadData &&
-                                                                <div style={{ padding: '10px', width: 'auto', display: 'inline-block' }}>
-                                                                    <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress || updatePropsLoader_Bulk} />
-                                                                    {showUploadProgress &&
-                                                                        <div style={{ paddingLeft: '10px', display: 'inline-block' }}><Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" /></div>
-                                                                    }
-                                                                </div>
-                                                            }
-                                                            <UPPropertyData items={uploadedData} isCSV={isCSV} UpdateSPForBulkUsers={this._updateSPForBulkUsers} showProgress={updatePropsLoader_Bulk}
-                                                                clearData={clearData} />
-                                                            {clearData &&
-                                                                <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
-                                                            }
-                                                        </div>
-                                                    }
-                                                    {selectedMenu == "2" &&
-                                                        <div className={css(styles.menuContent)}>
-                                                            <BulkSyncList helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl} dateFormat={this.props.dateFormat} />
-                                                        </div>
-                                                    }
-                                                    {selectedMenu == "3" &&
-                                                        <div className={css(styles.menuContent)}>
-                                                            <TemplatesView helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl} dateFormat={this.props.dateFormat} />
-                                                        </div>
-                                                    }
-                                                    {selectedMenu == "4" &&
-                                                        <div className={css(styles.menuContent)}>
-                                                            <SyncJobsView helper={this.state.helper} dateFormat={this.props.dateFormat} />
-                                                        </div>
-                                                    }
+                                                    {accessDenied ? (
+                                                        <MessageContainer MessageScope={MessageScope.SevereWarning} Message={strings.AccessDenied} />
+                                                    ) : (
+                                                            <>
+                                                                {!listExists ? (
+                                                                    <ProgressIndicator label={strings.ListCreationText} description={strings.PropsLoader} />
+                                                                ) : (
+                                                                        <>
+                                                                            <div>
+                                                                                {globalMessage.length > 0 &&
+                                                                                    <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+                                                                                        <MessageContainer MessageScope={MessageScope.Failure} Message={globalMessage} />
+                                                                                    </div>
+                                                                                }
+                                                                                <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
+                                                                                    <PivotItem headerText={strings.TabMenu1} itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
+                                                                                    <PivotItem headerText={strings.TabMenu2} itemKey="1" itemIcon="BulkUpload" headerButtonProps={headerButtonProps}></PivotItem>
+                                                                                    <PivotItem headerText={strings.TabMenu3} itemKey="2" itemIcon="StackIndicator" headerButtonProps={headerButtonProps}></PivotItem>
+                                                                                    <PivotItem headerText={strings.TabMenu4} itemKey="3" itemIcon="FileTemplate" headerButtonProps={headerButtonProps}></PivotItem>
+                                                                                    <PivotItem headerText={strings.TabMenu5} itemKey="4" itemIcon="SyncStatus" headerButtonProps={headerButtonProps}></PivotItem>
+                                                                                </Pivot>
+                                                                                <div style={{ float: "right" }}>
+                                                                                    <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl}
+                                                                                        disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings} />
+                                                                                </div>
+                                                                            </div>
+                                                                            {selectedMenu == "0" &&
+                                                                                <div className={css(styles.menuContent)}>
+                                                                                    <PeoplePicker
+                                                                                        disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure}
+                                                                                        context={this.props.context}
+                                                                                        titleText={strings.PPLPickerTitleText}
+                                                                                        personSelectionLimit={10}
+                                                                                        groupName={""} // Leave this blank in case you want to filter from all users
+                                                                                        showtooltip={false}
+                                                                                        isRequired={false}
+                                                                                        selectedItems={this._getPeoplePickerItems}
+                                                                                        showHiddenInUI={false}
+                                                                                        principalTypes={[PrincipalType.User]}
+                                                                                        resolveDelay={500}
+                                                                                        defaultSelectedUsers={selectedUsers.length > 0 ? this._getSelectedUsersLoginNames(selectedUsers) : []} />
+                                                                                    {reloadGetProperties ? (
+                                                                                        <>
+                                                                                            {selectedUsers.length > 0 &&
+                                                                                                <div>
+                                                                                                    <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListChanges} />
+                                                                                                </div>
+                                                                                            }
+                                                                                            {selectedUsers.length <= 0 && !clearData &&
+                                                                                                <div>
+                                                                                                    <MessageContainer MessageScope={MessageScope.Info} Message={strings.UserListEmpty} ShowDismiss={true} />
+                                                                                                </div>
+                                                                                            }
+                                                                                        </>
+                                                                                    ) : (
+                                                                                            <></>
+                                                                                        )
+                                                                                    }
+                                                                                    {selectedUsers && selectedUsers.length > 0 &&
+                                                                                        <div style={{ marginTop: "5px" }}>
+                                                                                            <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }}
+                                                                                                disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
+                                                                                            <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable}
+                                                                                                disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
+                                                                                            {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
+                                                                                        </div>
+                                                                                    }
+                                                                                    {manualPropertyData && manualPropertyData.length > 0 &&
+                                                                                        <ManualPropertyUpdate userProperties={manualPropertyData} UpdateSPUserWithManualProps={this._updateSPWithManualProperties}
+                                                                                            showProgress={updatePropsLoader_Manual} />
+                                                                                    }
+                                                                                    {azurePropertyData && azurePropertyData.length > 0 &&
+                                                                                        <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties}
+                                                                                            showProgress={updatePropsLoader_Azure} />
+                                                                                    }
+                                                                                    {clearData &&
+                                                                                        <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
+                                                                                    }
+                                                                                </div>
+                                                                            }
+                                                                            {selectedMenu == "1" &&
+                                                                                <div className={css(styles.menuContent)}>
+                                                                                    <div>
+                                                                                        <FilePicker
+                                                                                            accepts={[".json", ".csv"]}
+                                                                                            buttonIcon="FileImage"
+                                                                                            onSave={this._onSaveTemplate}
+                                                                                            onChanged={this._onChangeTemplate}
+                                                                                            context={this.props.context}
+                                                                                            disabled={showUploadProgress || updatePropsLoader_Bulk || noActivePropertyMappings}
+                                                                                            buttonLabel={"Select Data file"}
+                                                                                            hideLinkUploadTab={true}
+                                                                                            hideOrganisationalAssetTab={true}
+                                                                                            hideWebSearchTab={true}
+                                                                                        />
+                                                                                    </div>
+                                                                                    {fileurl &&
+                                                                                        <div style={{ color: "black", padding: '10px' }}>
+                                                                                            <FileTypeIcon type={IconType.font} path={fileurl} />&nbsp;{uploadedTemplate.fileName}
+                                                                                        </div>
+                                                                                    }
+                                                                                    {showUploadData &&
+                                                                                        <div style={{ padding: '10px', width: 'auto', display: 'inline-block' }}>
+                                                                                            <PrimaryButton text={strings.BtnUploadDataForSync} onClick={this._uploadDataToSync} disabled={showUploadProgress || updatePropsLoader_Bulk} />
+                                                                                            {showUploadProgress &&
+                                                                                                <div style={{ paddingLeft: '10px', display: 'inline-block' }}><Spinner className={styles.generateTemplateLoader} label={strings.UploadDataToSyncLoader} ariaLive="assertive" labelPosition="right" /></div>
+                                                                                            }
+                                                                                        </div>
+                                                                                    }
+                                                                                    <UPPropertyData items={uploadedData} isCSV={isCSV} UpdateSPForBulkUsers={this._updateSPForBulkUsers} showProgress={updatePropsLoader_Bulk}
+                                                                                        clearData={clearData} />
+                                                                                    {clearData &&
+                                                                                        <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
+                                                                                    }
+                                                                                </div>
+                                                                            }
+                                                                            {selectedMenu == "2" &&
+                                                                                <div className={css(styles.menuContent)}>
+                                                                                    <BulkSyncList helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl} dateFormat={this.props.dateFormat} />
+                                                                                </div>
+                                                                            }
+                                                                            {selectedMenu == "3" &&
+                                                                                <div className={css(styles.menuContent)}>
+                                                                                    <TemplatesView helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl} dateFormat={this.props.dateFormat} />
+                                                                                </div>
+                                                                            }
+                                                                            {selectedMenu == "4" &&
+                                                                                <div className={css(styles.menuContent)}>
+                                                                                    <SyncJobsView helper={this.state.helper} dateFormat={this.props.dateFormat} />
+                                                                                </div>
+                                                                            }
+                                                                        </>
+                                                                    )}
+                                                            </>
+                                                        )}
+
                                                 </>
                                             )}
                                     </>
-
                                 )}
                         </div>
                     </div>

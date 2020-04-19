@@ -16,13 +16,15 @@ import * as moment from 'moment/moment';
 import { IWeb } from "@pnp/sp/webs";
 import { IUserInfo, IPropertyMappings, IPropertyPair, FileContentType, SyncType, JobStatus } from "./IModel";
 import { IList } from '@pnp/sp/lists';
-import { boolFormatter } from './Constants';
 import { ChoiceFieldFormatType } from '@pnp/sp/fields/types';
 
+const map: any = require('lodash/map');
+const intersection: any = require('lodash/intersection');
 const orderBy: any = require('lodash/orderBy');
 
 export interface ISPHelper {
     getCurrentUserInfo: () => Promise<IUserInfo>;
+    checkCurrentUserGroup: (allowedGroups: string[], userGroups: string[]) => boolean;
     getAzurePropertyForUsers: (selectFields: string, filterQuery: string) => Promise<any[]>;
     getPropertyMappings: () => Promise<any[]>;
     getPropertyMappingsTemplate: (propertyMappings: IPropertyMappings[]) => Promise<any>;
@@ -43,8 +45,8 @@ export default class SPHelper implements ISPHelper {
     private AdminSiteURL: string = "";
     private SyncTemplateFilePath: string = "";
     private SyncUploadFilePath: string = "";
-    private SyncJSONFileName: string = `SyncTemplate_${moment().format("MMDDYYYYHHmmss")}.json`;
-    private SyncCSVFileName: string = `SyncTemplate_${moment().format("MMDDYYYYHHmmss")}.csv`;
+    private SyncJSONFileName: string = `SyncTemplate_${moment().format("MMDDYYYYhhmmss")}.json`;
+    private SyncCSVFileName: string = `SyncTemplate_${moment().format("MMDDYYYYhhmmss")}.csv`;
     private _web: IWeb = null;
 
     private Lst_PropsMapping = 'Sync Properties Mapping';
@@ -173,14 +175,26 @@ export default class SPHelper implements ISPHelper {
      */
     public getCurrentUserInfo = async (): Promise<IUserInfo> => {
         let currentUserInfo = await this._web.currentUser.get();
+        let currentUserGroups = await this._web.currentUser.groups.get();
         return ({
             ID: currentUserInfo.Id,
             Email: currentUserInfo.Email,
             LoginName: currentUserInfo.LoginName,
             DisplayName: currentUserInfo.Title,
             IsSiteAdmin: currentUserInfo.IsSiteAdmin,
+            Groups: map(currentUserGroups, 'LoginName'),
             Picture: '/_layouts/15/userphoto.aspx?size=S&username=' + currentUserInfo.UserPrincipalName,
         });
+    }
+    /**
+     * Check current user is a member of groups or not.
+     */
+    public checkCurrentUserGroup = (allowedGroups: string[], userGroups: string[]): boolean => {
+        if (userGroups.length > 0) {
+            let diff: string[] = intersection(allowedGroups, userGroups);
+            if (diff && diff.length > 0) return true;
+        } 
+        return false;
     }
     /**
      * Create a sync item
@@ -188,7 +202,7 @@ export default class SPHelper implements ISPHelper {
     public createSyncItem = async (syncType: SyncType): Promise<number> => {
         let returnVal: number = 0;
         let itemAdded = await this._web.lists.getByTitle(this.Lst_SyncJobs).items.add({
-            Title: `SyncJob_${moment().format("DD_MM_YYYY_hh_mm")}`,
+            Title: `SyncJob_${moment().format("MMDDYYYYhhmm")}`,
             Status: JobStatus.Submitted.toString(),
             SyncType: syncType.toString()
         });
@@ -232,9 +246,6 @@ export default class SPHelper implements ISPHelper {
             try {
                 await this._web.lists.getByTitle(this.Lst_PropsMapping).get();
                 console.log('Property Mapping List Exists');
-                // let listExists = await (await sp.web.lists.ensure('Prop Map')).list;
-                // await listExists.fields.createFieldAsXml(`<Field DisplayName="MyField4" Type="Boolean" Required="TRUE" StaticName="MyField4" Name="MyField4" />`);
-                // console.log("created");
             } catch (err) {
                 console.log("Property Mapping List doesn't exists, so creating");
                 await this._createPropsMappingList();
@@ -257,10 +268,10 @@ export default class SPHelper implements ISPHelper {
      */
     public _createSyncJobsList = async () => {
         let listExists = await (await sp.web.lists.ensure(this.Lst_SyncJobs)).list;
-        await listExists.fields.addMultilineText('SyncData', 6, false, false, false, false, {Required: true, Description: 'Data sent to Azure function for property update.'});
-        await listExists.fields.addMultilineText('SyncedData', 6, false, false, false, false, {Required: true, Description: 'Data received from Azure function with property update status.'});
-        await listExists.fields.addChoice('Status', ['Submitted','In-Progress','Completed','Error'], ChoiceFieldFormatType.Dropdown, false, {Required: true, Description: 'Status of the job.'});
-        await listExists.fields.addChoice('SyncType', ['Manual','Azure','Template'], ChoiceFieldFormatType.Dropdown, false, {Required: true, Description: 'Type of data sent to Azure function.'});
+        await listExists.fields.addMultilineText('SyncData', 6, false, false, false, false, { Required: true, Description: 'Data sent to Azure function for property update.' });
+        await listExists.fields.addMultilineText('SyncedData', 6, false, false, false, false, { Required: true, Description: 'Data received from Azure function with property update status.' });
+        await listExists.fields.addChoice('Status', ['Submitted', 'In-Progress', 'Completed', 'Error'], ChoiceFieldFormatType.Dropdown, false, { Required: true, Description: 'Status of the job.' });
+        await listExists.fields.addChoice('SyncType', ['Manual', 'Azure', 'Template'], ChoiceFieldFormatType.Dropdown, false, { Required: true, Description: 'Type of data sent to Azure function.' });
         let allItemsView = await listExists.views.getByTitle('All Items');
         let batch = sp.createBatch();
         allItemsView.fields.inBatch(batch).add('ID');
@@ -309,6 +320,9 @@ export default class SPHelper implements ISPHelper {
     }
 
     protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";
+    /**
+     * Azure function to update the UPS properties.
+     */
     public runAzFunction = async (httpClient: HttpClient, inputData: any, azFuncUrl: string) => {
         const requestHeaders: Headers = new Headers();
         requestHeaders.append("Content-type", "application/json");
