@@ -308,14 +308,14 @@ export default class SPHelper implements ISPHelper {
         lst.items.inBatch(batch).add({ Title: 'Department', AzProperty: 'department', SPProperty: 'Department', IsActive: true, AutoSync: true });
         lst.items.inBatch(batch).add({ Title: 'Job Title', AzProperty: 'jobTitle', SPProperty: 'Title', IsActive: true, AutoSync: true });
         lst.items.inBatch(batch).add({ Title: 'Office', AzProperty: 'officeLocation', SPProperty: 'Office', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'Business Phone', AzProperty: 'businessPhones', SPProperty: 'workPhone', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'Mobile Phone', AzProperty: 'mobilePhone', SPProperty: 'CellPhone', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'Fax Number', AzProperty: 'faxNumber', SPProperty: 'Fax', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'Street Address', AzProperty: 'streetAddress', SPProperty: 'StreetAddress', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'City', AzProperty: 'city', SPProperty: 'City', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'State or Province', AzProperty: 'state', SPProperty: 'State', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'Zip or Postal code', AzProperty: 'postalCode', SPProperty: 'PostalCode', IsActive: true, AutoSync: true });
-        lst.items.inBatch(batch).add({ Title: 'Country or Region', AzProperty: 'country', SPProperty: 'Country', IsActive: true, AutoSync: true });
+        lst.items.inBatch(batch).add({ Title: 'Business Phone', AzProperty: 'businessPhones', SPProperty: 'workPhone', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'Mobile Phone', AzProperty: 'mobilePhone', SPProperty: 'CellPhone', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'Fax Number', AzProperty: 'faxNumber', SPProperty: 'Fax', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'Street Address', AzProperty: 'streetAddress', SPProperty: 'StreetAddress', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'City', AzProperty: 'city', SPProperty: 'City', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'State or Province', AzProperty: 'state', SPProperty: 'State', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'Zip or Postal code', AzProperty: 'postalCode', SPProperty: 'PostalCode', IsActive: true, AutoSync: false });
+        lst.items.inBatch(batch).add({ Title: 'Country or Region', AzProperty: 'country', SPProperty: 'Country', IsActive: true, AutoSync: false });
         await batch.execute();
     }
 
@@ -334,7 +334,7 @@ export default class SPHelper implements ISPHelper {
         //let response: HttpClientResponse = await httpClient.post(azFuncUrl, HttpClient.configurations.v1, postOptions);
         /// Testing
         let response: HttpClientResponse = await httpClient.post(this.functionUrl, HttpClient.configurations.v1, postOptions);
-        console.log("Actual Response: ", response);
+        console.log("Actual Response: ", response.status, response.ok);
     }
 
 }

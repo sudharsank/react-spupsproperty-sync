@@ -57,7 +57,7 @@ export default function SyncJobsView(props: ISyncJobsProps) {
     };
     const ActionRender = (actionProps) => {
         return (
-            <ActionButton iconProps={actionIcon} allowDisabledFocus onClick={() => { actionClick(actionProps); }} />
+            <ActionButton iconProps={actionIcon} allowDisabledFocus onClick={() => { actionClick(actionProps); }} disabled={actionProps.disabled} />
         );
     };
     const _buildColumns = () => {
@@ -92,7 +92,8 @@ export default function SyncJobsView(props: ISyncJobsProps) {
         cols.push({
             key: 'Actions', name: 'Actions', fieldName: 'ID', minWidth: 100, maxWidth: 100,
             onRender: (item: any, index: number, column: IColumn) => {
-                return (<ActionRender SyncResults={item.SyncedData} />);
+                let disabled: boolean = (item.Status.toLowerCase().indexOf('completed') >= 0) ? false : true;
+                return (<ActionRender SyncResults={item.SyncedData} disabled={disabled}/>);
             }
         });
         setColumns(cols);

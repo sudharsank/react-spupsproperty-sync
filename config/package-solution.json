@@ -7,6 +7,7 @@
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
     "isDomainIsolated": false,
+    "iconPath": "Images/AppIcon.png",
     "webApiPermissionRequests": [
       {
         "resource": "Microsoft Graph",

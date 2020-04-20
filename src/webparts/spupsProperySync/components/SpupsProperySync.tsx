@@ -112,18 +112,15 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         let currentUserInfo = await this.helper.getCurrentUserInfo();
         if (currentUserInfo.IsSiteAdmin) {
             this.setState({ isSiteAdmin: true });
-            console.log('Site Admin');
             this._checkAndCreateLists();
         } else {
             let allowedGroups: string[] = map(this.props.allowedUsers, 'login');
             let accessAllowed: boolean = this.helper.checkCurrentUserGroup(allowedGroups, currentUserInfo.Groups);
             console.log(accessAllowed);
             if (accessAllowed) {
-                console.log("Allowed Users");
                 this._checkAndCreateLists();
             } else {
                 this.setState({ loading: false, accessDenied: true });
-                console.log("Access denied");
             }
         }
     }
@@ -399,13 +396,13 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      * Component render
      */
     public render(): React.ReactElement<ISpupsProperySyncProps> {
-        const { templateLib, displayMode, appTitle } = this.props;
+        const { templateLib, displayMode, appTitle, AzFuncUrl } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
             azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu, updatePropsLoader_Manual, updatePropsLoader_Azure,
             updatePropsLoader_Bulk, clearData, globalMessage, noActivePropertyMappings, listExists, isSiteAdmin, loading, accessDenied } = this.state;
         const fileurl = uploadedFileURL ? uploadedFileURL : uploadedTemplate && uploadedTemplate.fileAbsoluteUrl ? uploadedTemplate.fileAbsoluteUrl :
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
-        const showConfig = !templateLib ? true : false;
+        const showConfig = !templateLib || !AzFuncUrl ? true : false;
         const headerButtonProps = { 'disabled': showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk };
         return (
             <div className={styles.spupsProperySync}>
@@ -423,7 +420,14 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                             hideButton={displayMode === DisplayMode.Read}
                                             onConfigure={this.props.openPropertyPane} />
                                     ) : (
-                                            <MessageContainer MessageScope={MessageScope.SevereWarning} Message={strings.AdminConfigHelp} />
+                                            <>
+                                                {loading &&
+                                                    <ProgressIndicator label={"Checking site admin privilege..."} description={strings.PropsLoader} />
+                                                }
+                                                {!loading &&
+                                                    <MessageContainer MessageScope={MessageScope.SevereWarning} Message={strings.AdminConfigHelp} />
+                                                }
+                                            </>                                            
                                         )}
                                 </>
                             ) : (
