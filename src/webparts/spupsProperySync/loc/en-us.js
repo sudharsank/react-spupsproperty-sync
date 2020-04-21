@@ -36,6 +36,7 @@ define([], function() {
     BulkSyncListLoaderDesc: "Loading the bulk sync files...",
     BulkSyncFileDataLoaderDesc: "Loading data, please wait...",
     AccessCheckDesc: "Checking for access...",
+    SitePrivilegeCheckLabel: "Checking site admin privilege...",
 
     BtnGenerateJSON: "Generate JSON",
     BtnGenerateCSV: "Generate CSV",
@@ -64,6 +65,7 @@ define([], function() {
     JobIntializedSuccess: "Property sync job has been initialized. Track the status of the job on the 'Sync Jobs' tab!",
     AdminConfigHelp: "Please contact your site administrator to configure the webpart.",
     AccessDenied: "Access denied. Please contact your administrator.",
+    SyncFailedErrorMessage: "Oops, there is an error while updating the properties. Error Message:",
 
     TabMenu1: "Manual or Azure Property Sync",
     TabMenu2: "Bulk Sync",

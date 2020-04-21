@@ -34,12 +34,14 @@ export default function SyncJobsView(props: ISyncJobsProps) {
     const [filteredjobs, setFilteredJobs] = React.useState<any[]>([]);
     const [columns, setColumns] = React.useState<IColumn[]>([]);
     const [jobresults, setJobResults] = React.useState<string>('');
+    const [errorMsg, setErrorMessage] = React.useState<string>('');
     const [hideDialog, setHideDialog] = React.useState<boolean>(true);
     const [searchKey, setSearchKey] = React.useState<string>('');
     const [emptySearch, setEmptySearch] = React.useState<boolean>(false);
 
     const actionClick = (data) => {
         setJobResults(data.SyncResults);
+        setErrorMessage(data.ErrorMessage);
         setHideDialog(false);
     };
     const StatusRender = (childprops) => {
@@ -92,8 +94,8 @@ export default function SyncJobsView(props: ISyncJobsProps) {
         cols.push({
             key: 'Actions', name: 'Actions', fieldName: 'ID', minWidth: 100, maxWidth: 100,
             onRender: (item: any, index: number, column: IColumn) => {
-                let disabled: boolean = (item.Status.toLowerCase().indexOf('completed') >= 0) ? false : true;
-                return (<ActionRender SyncResults={item.SyncedData} disabled={disabled}/>);
+                let disabled: boolean = ((item.Status.toLowerCase() == "error" && item.ErrorMessage && item.ErrorMessage.length > 0) || item.Status.toLowerCase().indexOf('completed') >= 0) ? false : true;
+                return (<ActionRender SyncResults={item.SyncedData} ErrorMessage={item.ErrorMessage} disabled={disabled} />);
             }
         });
         setColumns(cols);
@@ -172,7 +174,7 @@ export default function SyncJobsView(props: ISyncJobsProps) {
                         }
                     </>
                 )}
-            <Dialog hidden={hideDialog} onDismiss={_closeDialog} maxWidth='700'
+            <Dialog hidden={hideDialog} onDismiss={_closeDialog} minWidth='400' maxWidth='700'
                 dialogContentProps={{
                     type: DialogType.close,
                     title: `${strings.JobResultsDialogTitle}`
@@ -180,9 +182,9 @@ export default function SyncJobsView(props: ISyncJobsProps) {
                 modalProps={{
                     isBlocking: true,
                     isDarkOverlay: true,
-                    styles: { main: { maxHeight: 700 } },
+                    styles: { main: { minWidth: 400, maxHeight: 700 } },
                 }}>
-                <SyncJobResults helper={props.helper} data={jobresults} />
+                <SyncJobResults helper={props.helper} data={jobresults} error={errorMsg} />
             </Dialog>
 
         </div>

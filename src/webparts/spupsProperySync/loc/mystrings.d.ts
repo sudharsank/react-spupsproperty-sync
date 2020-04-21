@@ -35,6 +35,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   TemplatePropsLoaderDesc: string;
   BulkSyncListLoaderDesc: string;
   AccessCheckDesc: string;
+  SitePrivilegeCheckLabel: string;
 
   BtnGenerateJSON: string;
   BtnGenerateCSV: string;
@@ -63,6 +64,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   JobIntializedSuccess: string;
   AdminConfigHelp: string;
   AccessDenied: string;
+  SyncFailedErrorMessage: string;
 
   TabMenu1: string;
   TabMenu2: string;

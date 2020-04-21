@@ -7,6 +7,8 @@ import { Icon } from 'office-ui-fabric-react/lib/Icon';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { css } from 'office-ui-fabric-react/lib';
 import SPHelper from '../../../../Common/SPHelper';
+import MessageContainer from '../MessageContainer';
+import { MessageScope } from '../../../../Common/IModel';
 
 const map: any = require('lodash/map');
 const union: any = require('lodash/union');
@@ -14,6 +16,7 @@ const union: any = require('lodash/union');
 export interface ISyncJobResultsProps {
     helper: SPHelper;
     data: string;
+    error: string;
 }
 
 export default function SyncJobResults(props: ISyncJobResultsProps) {
@@ -58,20 +61,24 @@ export default function SyncJobResults(props: ISyncJobResultsProps) {
     };
 
     const _buildJobResults = () => {
-        let parsedResults = JSON.parse(props.data);
-        let colValues = ['UserID'];
-        colValues = union(colValues, map(parsedResults.value[0].properties, 'name'));
-        _buildColumns(colValues);
-        let users = [];
-        map(parsedResults.value, (userProps) => {
-            var obj = new Object();
-            obj['UserID'] = userProps.userid;
-            map(userProps.properties, (prop) => {
-                obj[prop.name] = prop.value;
+        if (props.error && props.error.length > 0) {
+
+        } else {
+            let parsedResults = JSON.parse(props.data);
+            let colValues = ['UserID'];
+            colValues = union(colValues, map(parsedResults.value[0].properties, 'name'));
+            _buildColumns(colValues);
+            let users = [];
+            map(parsedResults.value, (userProps) => {
+                var obj = new Object();
+                obj['UserID'] = userProps.userid;
+                map(userProps.properties, (prop) => {
+                    obj[prop.name] = prop.value;
+                });
+                users.push(obj);
             });
-            users.push(obj);
-        });
-        setJobResults(users);
+            setJobResults(users);
+        }
         setLoading(false);
     };
 
@@ -96,6 +103,9 @@ export default function SyncJobResults(props: ISyncJobResultsProps) {
                     selectionMode={SelectionMode.none}
                     enableShimmer={true}
                     className={styles.uppropertylist} />
+            }
+            {props.error && props.error.length > 0 &&
+                <MessageContainer MessageScope={MessageScope.Failure} Message={`${strings.SyncFailedErrorMessage} ${props.error}`} />
             }
         </div>
     );

@@ -303,7 +303,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ updatePropsLoader_Manual: true });
         let itemID = await this.helper.createSyncItem(SyncType.Manual);
         let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl);
+        await this.helper.updateSyncItem(itemID, finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl, itemID);
         this.setState({ updatePropsLoader_Manual: false, clearData: true, selectedUsers: [], manualPropertyData: [] });
     }
     /**
@@ -313,8 +314,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ updatePropsLoader_Azure: true });
         let itemID = await this.helper.createSyncItem(SyncType.Azure);
         let finalJson = this._prepareJSONForAzFunc(data, true, itemID);
-        //console.log(finalJson);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl);
+        await this.helper.updateSyncItem(itemID, finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl, itemID);
         this.setState({ updatePropsLoader_Azure: false, clearData: true, selectedUsers: [], azurePropertyData: [] });
     }
     /**
@@ -324,7 +325,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         this.setState({ updatePropsLoader_Bulk: true });
         let itemID = await this.helper.createSyncItem(SyncType.Template);
         let finalJson = this._prepareJSONForAzFunc(data, false, itemID);
-        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl);
+        await this.helper.updateSyncItem(itemID, finalJson);
+        this.helper.runAzFunction(this.props.context.httpClient, finalJson, this.props.AzFuncUrl, itemID);
         this.setState({ updatePropsLoader_Bulk: false, clearData: true, uploadedData: null, uploadedTemplate: null, uploadedFileURL: '', showUploadData: false });
     }
     /**
@@ -422,7 +424,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                     ) : (
                                             <>
                                                 {loading &&
-                                                    <ProgressIndicator label={"Checking site admin privilege..."} description={strings.PropsLoader} />
+                                                    <ProgressIndicator label={strings.SitePrivilegeCheckLabel} description={strings.PropsLoader} />
                                                 }
                                                 {!loading &&
                                                     <MessageContainer MessageScope={MessageScope.SevereWarning} Message={strings.AdminConfigHelp} />

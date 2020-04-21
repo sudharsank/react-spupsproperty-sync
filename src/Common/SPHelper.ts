@@ -31,11 +31,13 @@ export interface ISPHelper {
     addFilesToFolder: (filename: string, fileContent: any) => void;
     getFileContent: (filepath: string, contentType: FileContentType) => void;
     createSyncItem: (syncType: SyncType) => Promise<number>;
+    updateSyncItem: (itemid: number, inputJson: string) => void;
+    updateSyncItemStatus: (itemid: number, errMsg: string) => void;
     getAllJobs: () => void;
     getAllTemplates: () => void;
     getAllBulkList: () => void;
 
-    runAzFunction: (httpClient: HttpClient, inputData: any, azFuncUrl: string) => void;
+    runAzFunction: (httpClient: HttpClient, inputData: any, azFuncUrl: string, itemid: number) => void;
 }
 
 export default class SPHelper implements ISPHelper {
@@ -193,7 +195,7 @@ export default class SPHelper implements ISPHelper {
         if (userGroups.length > 0) {
             let diff: string[] = intersection(allowedGroups, userGroups);
             if (diff && diff.length > 0) return true;
-        } 
+        }
         return false;
     }
     /**
@@ -210,11 +212,28 @@ export default class SPHelper implements ISPHelper {
         return returnVal;
     }
     /**
+     * Update Sync item with the input data to sync
+     */
+    public updateSyncItem = async (itemid: number, inputJson: string) => {
+        await this._web.lists.getByTitle(this.Lst_SyncJobs).items.getById(itemid).update({
+            SyncData: inputJson
+        });
+    }
+    /**
+     * Update Sync item with the error status
+     */
+    public updateSyncItemStatus = async (itemid: number, errMsg: string) => {
+        await this._web.lists.getByTitle(this.Lst_SyncJobs).items.getById(itemid).update({
+            Status: JobStatus.Error,
+            ErrorMessage: errMsg
+        });
+    }
+    /**
      * Get all the jobs items
      */
     public getAllJobs = async () => {
         return await this._web.lists.getByTitle(this.Lst_SyncJobs).items
-            .select('ID', 'Title', 'SyncedData', 'Status', 'SyncType', 'Created', 'Author/Title', 'Author/Id', 'Author/EMail')
+            .select('ID', 'Title', 'SyncedData', 'Status', 'ErrorMessage', 'SyncType', 'Created', 'Author/Title', 'Author/Id', 'Author/EMail')
             .expand('Author')
             .getAll();
     }
@@ -271,6 +290,7 @@ export default class SPHelper implements ISPHelper {
         await listExists.fields.addMultilineText('SyncData', 6, false, false, false, false, { Required: true, Description: 'Data sent to Azure function for property update.' });
         await listExists.fields.addMultilineText('SyncedData', 6, false, false, false, false, { Required: true, Description: 'Data received from Azure function with property update status.' });
         await listExists.fields.addChoice('Status', ['Submitted', 'In-Progress', 'Completed', 'Error'], ChoiceFieldFormatType.Dropdown, false, { Required: true, Description: 'Status of the job.' });
+        await listExists.fields.addMultilineText('ErrorMessage', 6, false, false, false, false, {Required: false, Description: 'Store the error message while calling Azure function.'});
         await listExists.fields.addChoice('SyncType', ['Manual', 'Azure', 'Template'], ChoiceFieldFormatType.Dropdown, false, { Required: true, Description: 'Type of data sent to Azure function.' });
         let allItemsView = await listExists.views.getByTitle('All Items');
         let batch = sp.createBatch();
@@ -278,6 +298,7 @@ export default class SPHelper implements ISPHelper {
         allItemsView.fields.inBatch(batch).add('SyncData');
         allItemsView.fields.inBatch(batch).add('SyncedData');
         allItemsView.fields.inBatch(batch).add('Status');
+        allItemsView.fields.inBatch(batch).add('ErrorMessage');
         allItemsView.fields.inBatch(batch).add('SyncType');
         allItemsView.fields.inBatch(batch).move('ID', 0);
         await batch.execute();
@@ -318,12 +339,10 @@ export default class SPHelper implements ISPHelper {
         lst.items.inBatch(batch).add({ Title: 'Country or Region', AzProperty: 'country', SPProperty: 'Country', IsActive: true, AutoSync: false });
         await batch.execute();
     }
-
-    protected functionUrl: string = "https://demosponline.azurewebsites.net/api/playwithpnpsp?code=mdEonK9e7eS38WziRbdllF19StdOFQQhquAbhSUivMbX8vgjQ1GNPg==";
     /**
      * Azure function to update the UPS properties.
      */
-    public runAzFunction = async (httpClient: HttpClient, inputData: any, azFuncUrl: string) => {
+    public runAzFunction = async (httpClient: HttpClient, inputData: any, azFuncUrl: string, itemid: number) => {
         const requestHeaders: Headers = new Headers();
         requestHeaders.append("Content-type", "application/json");
         requestHeaders.append("Cache-Control", "no-cache");
@@ -331,10 +350,11 @@ export default class SPHelper implements ISPHelper {
             headers: requestHeaders,
             body: `${inputData}`
         };
-        //let response: HttpClientResponse = await httpClient.post(azFuncUrl, HttpClient.configurations.v1, postOptions);
-        /// Testing
-        let response: HttpClientResponse = await httpClient.post(this.functionUrl, HttpClient.configurations.v1, postOptions);
-        console.log("Actual Response: ", response.status, response.ok);
+        let response: HttpClientResponse = await httpClient.post(azFuncUrl, HttpClient.configurations.v1, postOptions);
+        if (!response.ok) {
+            await this.updateSyncItemStatus(itemid, `${response.status} - ${response.statusText}`);
+        }
+        console.log("Azure Function executed");
     }
 
 }
