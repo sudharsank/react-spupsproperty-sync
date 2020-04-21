@@ -104,7 +104,6 @@ export default class UPPropertyData extends React.Component<IUPPropertyDataProps
 
 	public render(): JSX.Element {
 		const { items, columns, emptyValues } = this.state;
-		//console.log(this.emptyValues);
 		return (
 			<div className={styles.uppropertydata}>
 				{emptyValues && !this.props.clearData &&

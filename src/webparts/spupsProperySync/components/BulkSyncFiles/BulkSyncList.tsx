@@ -11,7 +11,7 @@ import { Dialog, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { Link } from 'office-ui-fabric-react/lib/Link';
 import { Icon, IconType, IIconProps } from 'office-ui-fabric-react/lib/Icon';
 import * as moment from 'moment/moment';
-import { MessageScope, FileContentType } from '../../../../Common/IModel';
+import { MessageScope } from '../../../../Common/IModel';
 import SPHelper from '../../../../Common/SPHelper';
 import MessageContainer from '../MessageContainer';
 import BulkSyncData from './BulkSyncData';

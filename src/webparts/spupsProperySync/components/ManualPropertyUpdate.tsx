@@ -7,7 +7,6 @@ import EditableTable from './DynamicTable/EditableTable';
 import MessageContainer from './MessageContainer';
 import { MessageScope } from '../../../Common/IModel';
 
-
 export interface IManualPropertyUpdateProps {
     userProperties: any;
     showProgress: boolean;

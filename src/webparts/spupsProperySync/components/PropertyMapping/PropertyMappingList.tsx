@@ -6,7 +6,7 @@ import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
 import SPHelper from '../../../../Common/SPHelper';
-import { IPropertyMappings, FileContentType, MessageScope } from '../../../../Common/IModel';
+import { IPropertyMappings, MessageScope } from '../../../../Common/IModel';
 import PropertyMappingItem from './PropertyMappingItem';
 import { parse } from 'json2csv';
 import MessageContainer from '../MessageContainer';
@@ -101,7 +101,6 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
 	 */
 	private _openPropertyMappingPanel = () => {
 		let templateProperties = this.getDefaultTemplateProperties();
-		//templateProperties.map(prop => { prop.IsIncluded = true; });
 		this.setState({ templateProperties, isOpen: true });
 	}
 	/**

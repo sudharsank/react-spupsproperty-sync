@@ -5,12 +5,13 @@ import { DisplayMode } from '@microsoft/sp-core-library';
 import { WebPartTitle } from "@pnp/spfx-controls-react/lib/WebPartTitle";
 import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import { PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
+import { IPropertyFieldGroupOrPerson } from '@pnp/spfx-property-controls/lib/propertyFields/peoplePicker/IPropertyFieldPeoplePicker';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
 import { FileTypeIcon, IconType } from "@pnp/spfx-controls-react/lib/FileTypeIcon";
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
-import { css, FirstWeekOfYear, ProgressIndicator } from 'office-ui-fabric-react/lib';
+import { css, ProgressIndicator } from 'office-ui-fabric-react/lib';
 import { IPropertyMappings, FileContentType, MessageScope, SyncType } from '../../../Common/IModel';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import SPHelper from '../../../Common/SPHelper';
@@ -23,7 +24,7 @@ import TemplatesView from './TemplatesList/TemplatesView';
 import BulkSyncList from './BulkSyncFiles/BulkSyncList';
 import * as moment from 'moment/moment';
 import MessageContainer from './MessageContainer';
-import { IPropertyFieldGroupOrPerson } from '@pnp/spfx-property-controls/lib/propertyFields/peoplePicker/IPropertyFieldPeoplePicker';
+
 
 const map: any = require('lodash/map');
 

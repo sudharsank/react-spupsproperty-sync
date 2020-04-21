@@ -14,8 +14,6 @@
     "title": { "default": "SPUPSPropery Sync" },
     "description": { "default": "Sync Azure AD properties or User defined values (custom properties) to SharePoint User Profile Properties." },
     "officeFabricIconFontName": "UserSync",
-    "properties": {
-      
-    }
+    "properties": {}
   }]
 }

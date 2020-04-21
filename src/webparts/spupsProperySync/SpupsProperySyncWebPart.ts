@@ -33,10 +33,6 @@ export interface ISpupsProperySyncWebPartProps {
     allowedUsers: IPropertyFieldGroupOrPerson[];
 }
 
-// export interface ISpupsProperySyncWebPartState {
-//     loadingIndicator: boolean;
-// }
-
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
     private loadingIndicator: boolean = true;
     private wpPropertyPages: IPropertyPanePage[] = [];
