@@ -9,8 +9,7 @@
   "scripts": {
     "build": "gulp bundle",
     "clean": "gulp clean",
-    "test": "gulp test",
-    "serve": "cross-env NODE_OPTIONS=--max_old_space_size=4096 gulp bundle --custom-serve && cross-env NODE_OPTIONS=--max_old_space_size=4096 webpack-dev-server --mode development --config ./webpack.js --env.env=dev"
+    "test": "gulp test"
   },
   "dependencies": {
     "@microsoft/sp-core-library": "1.10.0",
@@ -50,6 +49,8 @@
     "@types/chai": "3.4.34",
     "@types/mocha": "2.2.38",
     "ajv": "~5.2.2",
+    "cross-env": "7.0.2",
+    "del": "5.1.0",
     "gulp": "~3.9.1",
     "jquery": "^3.4.1"
   }
