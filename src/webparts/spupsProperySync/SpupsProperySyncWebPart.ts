@@ -31,6 +31,7 @@ export interface ISpupsProperySyncWebPartProps {
     toggleInfoHeaderValue: boolean;
     useFullWidth: boolean;
     allowedUsers: IPropertyFieldGroupOrPerson[];
+    enableBulkUpdate: boolean;
 }
 
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
@@ -59,7 +60,8 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                 updateProperty: (value: string) => {
                     this.properties.appTitle = value;
                 },
-                openPropertyPane: this.openPropertyPane
+                openPropertyPane: this.openPropertyPane,
+                enableBulkUpdate: this.properties.enableBulkUpdate
             }
         );
 
@@ -181,6 +183,13 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                             PropertyPaneWebPartInformation({
                                 description: `${strings.PropAllowedUserInfo}`,
                                 key: 'allowedUsersInfoId'
+                            }),
+                            PropertyFieldToggleWithCallout('enableBulkUpdate', {
+                                key: 'enableBulkUpdateFieldId',
+                                label: strings.PropEnableBUCallout,
+                                onText: 'ON',
+                                offText: 'OFF',
+                                checked: this.properties.enableBulkUpdate
                             }),
                             PropertyFieldToggleWithCallout('useFullWidth', {
                                 key: 'useFullWidthFieldId',

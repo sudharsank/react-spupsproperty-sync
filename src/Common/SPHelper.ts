@@ -59,7 +59,7 @@ export default class SPHelper implements ISPHelper {
     constructor(siteurl: string, tenantname: string, domainname: string, relativeurl: string, libid: string) {
         this.SiteURL = siteurl;
         this.SiteRelativeURL = relativeurl;
-        this.AdminSiteURL = `https://${tenantname}-admin.${domainname}`;
+        this.AdminSiteURL = `${siteurl.split("." + domainname)[0]}-admin.${domainname}`;
         this._web = sp.web;
         this.getTemplateLibraryInfo(libid);
     }

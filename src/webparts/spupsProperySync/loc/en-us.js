@@ -14,6 +14,8 @@ define([], function() {
     PropInfoTemplateLib: "Document library to maintain the templates and batch files uploaded. </br>'<strong>SyncJobTemplate</strong>' folder will be created to maintain the templates.</br>'<strong>UPSDataToProcess</strong>' folder will be created to maintain the files uploaded for bulk sync.",
     PropInfoNormalUser: "Sorry, the configuration is enabled only for the site administrators, please contact your site administrator!",
     PropAllowedUserInfo: "Only SharePoint groups are allowed in this setting. Only memebers of the SharePoint groups defined above will have access to this web part.",    
+    PropEnableBULabel: "Bulk Update",
+    PropEnableBUCallout: "Turn on to enable bulk update",
     
     PlaceholderIconText: "Configure the settings",
     PlaceholderDescription: "Use the configuration settings to map the document library required to store the property mapping templates.",

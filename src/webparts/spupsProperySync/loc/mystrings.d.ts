@@ -13,6 +13,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   PropInfoTemplateLib: string;
   PropInfoNormalUser: string;
   PropAllowedUserInfo: string;
+  PropEnableBULabel: string;
+  PropEnableBUCallout: string;
 
   PlaceholderIconText: string;
   PlaceholderDescription: string;

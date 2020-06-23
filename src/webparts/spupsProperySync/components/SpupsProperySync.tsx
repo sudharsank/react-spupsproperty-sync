@@ -40,6 +40,7 @@ export interface ISpupsProperySyncProps {
     useFullWidth: boolean;
     openPropertyPane: () => void;
     updateProperty: (value: string) => void;
+    enableBulkUpdate: boolean;
 }
 
 export interface ISpupsProperySyncState {
@@ -335,10 +336,13 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
      */
     private _prepareJSONForAzFunc = (data: any[], isAzure: boolean, itemid: number): string => {
         let finalJson: string = "";
+        let siteUrl: string = this.props.context.pageContext.legacyPageContext.webAbsoluteUrl;
+        let domainName: string = this.props.context.pageContext.legacyPageContext.webDomain;
+        let tenantName: string = siteUrl.split("." + domainName)[0];
         if (data && data.length > 0) {
             let userPropMapping = new Object();
-            userPropMapping['targetSiteUrl'] = this.props.context.pageContext.legacyPageContext.webAbsoluteUrl;
-            userPropMapping['targetAdminUrl'] = `https://${this.props.context.pageContext.legacyPageContext.tenantDisplayName}-admin.${this.props.context.pageContext.legacyPageContext.webDomain}`;
+            userPropMapping['targetSiteUrl'] = siteUrl;
+            userPropMapping['targetAdminUrl'] = `${tenantName}-admin.${domainName}`;
             userPropMapping['usecert'] = this.props.UseCert ? this.props.UseCert : false;
             userPropMapping['itemId'] = itemid;
             let propValues: any[] = [];
@@ -398,8 +402,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     /**
      * Component render
      */
-    public render(): React.ReactElement<ISpupsProperySyncProps> {
-        const { templateLib, displayMode, appTitle, AzFuncUrl } = this.props;
+    public render(): React.ReactElement<ISpupsProperySyncProps> {        
+        const { templateLib, displayMode, appTitle, AzFuncUrl, enableBulkUpdate } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
             azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu, updatePropsLoader_Manual, updatePropsLoader_Azure,
             updatePropsLoader_Bulk, clearData, globalMessage, noActivePropertyMappings, listExists, isSiteAdmin, loading, accessDenied } = this.state;
@@ -407,6 +411,11 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             uploadedTemplate && uploadedTemplate.fileName ? uploadedTemplate.fileName : '';
         const showConfig = !templateLib || !AzFuncUrl ? true : false;
         const headerButtonProps = { 'disabled': showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk };
+        const pivotBUItems = enableBulkUpdate ? [
+            <PivotItem headerText={strings.TabMenu2} itemKey="1" itemIcon="BulkUpload" headerButtonProps={headerButtonProps}></PivotItem>,
+            <PivotItem headerText={strings.TabMenu3} itemKey="2" itemIcon="StackIndicator" headerButtonProps={headerButtonProps}></PivotItem>,
+            <PivotItem headerText={strings.TabMenu4} itemKey="3" itemIcon="FileTemplate" headerButtonProps={headerButtonProps}></PivotItem>
+        ] : [];
         return (
             <div className={styles.spupsProperySync}>
                 <div className={styles.container}>
@@ -430,7 +439,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                 {!loading &&
                                                     <MessageContainer MessageScope={MessageScope.SevereWarning} Message={strings.AdminConfigHelp} />
                                                 }
-                                            </>                                            
+                                            </>
                                         )}
                                 </>
                             ) : (
@@ -455,14 +464,13 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                                                 }
                                                                                 <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
                                                                                     <PivotItem headerText={strings.TabMenu1} itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
-                                                                                    <PivotItem headerText={strings.TabMenu2} itemKey="1" itemIcon="BulkUpload" headerButtonProps={headerButtonProps}></PivotItem>
-                                                                                    <PivotItem headerText={strings.TabMenu3} itemKey="2" itemIcon="StackIndicator" headerButtonProps={headerButtonProps}></PivotItem>
-                                                                                    <PivotItem headerText={strings.TabMenu4} itemKey="3" itemIcon="FileTemplate" headerButtonProps={headerButtonProps}></PivotItem>
+                                                                                    {pivotBUItems}
                                                                                     <PivotItem headerText={strings.TabMenu5} itemKey="4" itemIcon="SyncStatus" headerButtonProps={headerButtonProps}></PivotItem>
                                                                                 </Pivot>
                                                                                 <div style={{ float: "right" }}>
                                                                                     <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl}
-                                                                                        disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings} />
+                                                                                        disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings} 
+                                                                                        enableBulkUpdate={enableBulkUpdate}/>
                                                                                 </div>
                                                                             </div>
                                                                             {selectedMenu == "0" &&
