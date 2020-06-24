@@ -32,6 +32,7 @@ export interface ISpupsProperySyncWebPartProps {
     useFullWidth: boolean;
     allowedUsers: IPropertyFieldGroupOrPerson[];
     enableBulkUpdate: boolean;
+    enableManualUpdate: boolean;
 }
 
 export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpupsProperySyncWebPartProps> {
@@ -61,7 +62,8 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                     this.properties.appTitle = value;
                 },
                 openPropertyPane: this.openPropertyPane,
-                enableBulkUpdate: this.properties.enableBulkUpdate
+                enableBulkUpdate: this.properties.enableBulkUpdate,
+                enableManualUpdate: this.properties.enableManualUpdate
             }
         );
 
@@ -190,6 +192,13 @@ export default class SpupsProperySyncWebPart extends BaseClientSideWebPart<ISpup
                                 onText: 'ON',
                                 offText: 'OFF',
                                 checked: this.properties.enableBulkUpdate
+                            }),
+                            PropertyFieldToggleWithCallout('enableManualUpdate', {
+                                key: 'enableBulkUpdateFieldId',
+                                label: strings.PropEnableMUCallout,
+                                onText: 'ON',
+                                offText: 'OFF',
+                                checked: this.properties.enableManualUpdate
                             }),
                             PropertyFieldToggleWithCallout('useFullWidth', {
                                 key: 'useFullWidthFieldId',

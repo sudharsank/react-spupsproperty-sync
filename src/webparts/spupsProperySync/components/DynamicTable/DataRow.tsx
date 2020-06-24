@@ -20,8 +20,8 @@ export default function DataRow(props: IDataRowProps) {
             {props.isReadOnly ? (
                 <>
                     {props.columns.map(col => {
-                        if (col.toLocaleLowerCase() !== "imageurl" && col.toLocaleLowerCase() !== "userprincipalname" && col.toLocaleLowerCase() !== "id") {
-                            if (col.toLocaleLowerCase() == "displayname") {
+                        if (col.Props.toLocaleLowerCase() !== "imageurl" && col.Props.toLocaleLowerCase() !== "userprincipalname" && col.Props.toLocaleLowerCase() !== "id") {
+                            if (col.Props.toLocaleLowerCase() == "displayname") {
                                 return <EditableCell cellData={{
                                     "type": col,
                                     value: props.item.displayName,
@@ -33,7 +33,7 @@ export default function DataRow(props: IDataRowProps) {
                             } else {
                                 return <EditableCell cellData={{
                                     "type": col,
-                                    value: props.item[col],
+                                    value: props.item[col.Props],
                                     id: props.item.userPrincipalName,
                                 }} isReadOnly={props.isReadOnly} />;
                             }
@@ -43,8 +43,8 @@ export default function DataRow(props: IDataRowProps) {
             ) : (
                     <>
                         {props.columns.map(col => {
-                            if (col.toLocaleLowerCase() !== "imageurl" && col.toLocaleLowerCase() !== "displayname") {
-                                if (col == "UserID") {
+                            if (col.Props.toLocaleLowerCase() !== "imageurl" && col.Props.toLocaleLowerCase() !== "displayname") {
+                                if (col.Props == "UserID") {
                                     return <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
                                         "type": col,
                                         value: props.item.DisplayName,
@@ -55,7 +55,7 @@ export default function DataRow(props: IDataRowProps) {
                                 } else {
                                     return <EditableCell onTableUpdate={props.onTableUpdate} cellData={{
                                         "type": col,
-                                        value: props.item[col],
+                                        value: props.item[col.Props],
                                         id: props.item.UserID,
                                         label: false
                                     }} />;

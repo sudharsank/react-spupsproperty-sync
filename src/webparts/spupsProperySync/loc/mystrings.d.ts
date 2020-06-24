@@ -15,6 +15,8 @@ declare interface ISpupsProperySyncWebPartStrings {
   PropAllowedUserInfo: string;
   PropEnableBULabel: string;
   PropEnableBUCallout: string;
+  PropEnableMULabel: string;
+  PropEnableMUCallout: string;
 
   PlaceholderIconText: string;
   PlaceholderDescription: string;
@@ -68,6 +70,7 @@ declare interface ISpupsProperySyncWebPartStrings {
   AccessDenied: string;
   SyncFailedErrorMessage: string;
 
+  TabOnlyAzure: string;
   TabMenu1: string;
   TabMenu2: string;
   TabMenu3: string;

@@ -16,6 +16,8 @@ define([], function() {
     PropAllowedUserInfo: "Only SharePoint groups are allowed in this setting. Only memebers of the SharePoint groups defined above will have access to this web part.",    
     PropEnableBULabel: "Bulk Update",
     PropEnableBUCallout: "Turn on to enable bulk update",
+    PropEnableMULabel: "Manual Update",
+    PropEnableMUCallout: "Turn on to enable manual update",
     
     PlaceholderIconText: "Configure the settings",
     PlaceholderDescription: "Use the configuration settings to map the document library required to store the property mapping templates.",
@@ -69,6 +71,7 @@ define([], function() {
     AccessDenied: "Access denied. Please contact your administrator.",
     SyncFailedErrorMessage: "Oops, there is an error while updating the properties. Error Message:",
 
+    TabOnlyAzure: "Azure Property Sync",
     TabMenu1: "Manual or Azure Property Sync",
     TabMenu2: "Bulk Sync",
     TabMenu3: "Bulk Files Uploaded",

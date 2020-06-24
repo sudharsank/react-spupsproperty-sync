@@ -21,7 +21,7 @@ export interface IPropertyMappingItemProps {
 export default class PropertyMappingItem extends React.Component<IPropertyMappingItemProps, {}> {
 	constructor(props: IPropertyMappingItemProps) {
 		super(props);
-	}
+    }
 
 	public render(): JSX.Element {
 		const { items } = this.props;
@@ -30,6 +30,10 @@ export default class PropertyMappingItem extends React.Component<IPropertyMappin
 				{items.map((item: IPropertyMappings) => {
 					return (
 						<div className={styles.mappingcontainer} data-is-focusable={true}>
+                            <div className={styles.propertydiv}>{item.Title}</div>
+							<Separator className={styles.separator}>
+								{/* <Icon iconName="DoubleChevronRight8" styles={iconStyles} /> */}
+							</Separator>
 							<div className={styles.propertydiv}>{item.AzProperty}</div>
 							<Separator className={styles.separator}>
 								<Icon iconName="DoubleChevronRight8" styles={iconStyles} />

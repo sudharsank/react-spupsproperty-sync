@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styles from './PropertyMapping.module.scss';
 import * as strings from 'SpupsProperySyncWebPartStrings';
+
 import { IIconProps } from 'office-ui-fabric-react/lib/Icon';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
@@ -93,9 +94,9 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
     private _onEnableOrDisableProperty = (item: IPropertyMappings, checked: boolean) => {
         let templateProperties: IPropertyMappings[] = this.state.templateProperties;
         let property = templateProperties.filter(prop => { return prop.ID == item.ID; });
-        if (property) property[0].IsIncluded = false;
+        if (property) property[0].IsIncluded = checked;
         this.setState({ ...this.state, templateProperties });
-        this.render();
+        //this.render();
     }
 	/**
 	 * Get the default property mappings and then open the panel
@@ -184,7 +185,7 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
         return (
             <div className={styles.propertyMappingList}>
                 <PrimaryButton text={strings.BtnPropertyMapping} onClick={this._openPropertyMappingPanel} disabled={disableMappingButton} />
-                <Panel isOpen={isOpen} onDismiss={this._dismissPanel} type={PanelType.largeFixed} closeButtonAriaLabel="Close" headerText={strings.PnlHeaderText}
+                <Panel isOpen={isOpen} onDismiss={this._dismissPanel} type={PanelType.large} closeButtonAriaLabel="Close" headerText={strings.PnlHeaderText}
                     headerClassName={styles.panelHeader} isFooterAtBottom={true} onRenderFooterContent={this._onRenderPanelFooterContent}>
                     <div className={styles.propertyMappingPanelContent}>
                         {globalMessage.length > 0 &&
@@ -193,6 +194,8 @@ export default class PropertyMappingList extends React.Component<IPropertyMappin
                             </div>
                         }
                         <div className={styles.mappingcontainer} data-is-focusable={true} style={{ marginBottom: '10px' }}>
+                            <div className={styles.propertytitlediv}>{"Title"}</div>
+                            <div className={styles.separator}>&nbsp;</div>
                             <div className={styles.propertytitlediv}>{strings.TblColHeadAzProperty}</div>
                             <div className={styles.separator}>&nbsp;</div>
                             <div className={styles.propertytitlediv}>{strings.TblColHeadSPProperty}</div>

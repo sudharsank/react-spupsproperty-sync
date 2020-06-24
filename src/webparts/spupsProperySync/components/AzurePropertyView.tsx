@@ -3,7 +3,7 @@ import * as strings from 'SpupsProperySyncWebPartStrings';
 import styles from './SpupsProperySync.module.scss';
 import { PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
-import { MessageScope } from '../../../Common/IModel';
+import { MessageScope, IPropertyMappings } from '../../../Common/IModel';
 import EditableTable from './DynamicTable/EditableTable';
 import MessageContainer from './MessageContainer';
 
@@ -11,27 +11,31 @@ export interface IAzurePropertyViewProps {
     userProperties: any;
     showProgress: boolean;
     UpdateSPUserWithAzureProps: (data: any) => void;
+    propertyMappings: IPropertyMappings[];
 }
 
 export interface IAzurePropertyViewState {
     data: any;
+    propertyMappings: IPropertyMappings[];
 }
 
 export default class AzurePropertyView extends React.Component<IAzurePropertyViewProps, IAzurePropertyViewState> {
     constructor(props: IAzurePropertyViewProps) {
         super(props);
         this.state = {
-            data: []
+            data: [],
+            propertyMappings: []
         };
     }
 
     public componentDidMount = async () => {
-        this.setState({ data: this.props.userProperties });
+        this.setState({ data: this.props.userProperties, propertyMappings: this.props.propertyMappings });
     }
 
     public componentDidUpdate = (prevProps: IAzurePropertyViewProps) => {
-        if (prevProps.userProperties !== this.props.userProperties) {
-            this.setState({ data: this.props.userProperties });
+        if (prevProps.userProperties !== this.props.userProperties ||
+            prevProps.propertyMappings !== this.props.propertyMappings) {
+            this.setState({ data: this.props.userProperties, propertyMappings: this.props.propertyMappings });
         }
     }
 
@@ -46,12 +50,12 @@ export default class AzurePropertyView extends React.Component<IAzurePropertyVie
     }
 
     public render(): JSX.Element {
-        const { data } = this.state;
+        const { data, propertyMappings } = this.state;
         return (
             <div>
                 {(data && data.length > 0) ? (
                     <>
-                        <EditableTable onRowDel={this.handleRowDel.bind(this)} data={data} isReadOnly={true} />
+                        <EditableTable onRowDel={this.handleRowDel.bind(this)} data={data} propertyMappings={propertyMappings} isReadOnly={true} />
                         <div style={{ marginTop: "5px" }}>
                             <PrimaryButton text={strings.BtnUpdateUserProps} onClick={this.updateWithAzureProperty} style={{ marginRight: '5px' }} disabled={this.props.showProgress} />
                             {this.props.showProgress && <Spinner className={styles.generateTemplateLoader} label={strings.PropsUpdateLoader} ariaLive="assertive" labelPosition="right" />}

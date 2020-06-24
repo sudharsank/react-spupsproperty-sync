@@ -41,6 +41,7 @@ export interface ISpupsProperySyncProps {
     openPropertyPane: () => void;
     updateProperty: (value: string) => void;
     enableBulkUpdate: boolean;
+    enableManualUpdate: boolean;
 }
 
 export interface ISpupsProperySyncState {
@@ -227,6 +228,19 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
         }
     }
     /**
+     * Add the missing extension attributes to null.
+     */
+    private _updateDataWithAllProperties = (data: any[], props: IPropertyMappings[]): any[] => {
+        if (data && data.length > 0) {
+            data.map((o) => {
+                props.map((p) => {
+                    if (!o[p.AzProperty]) return o[p.AzProperty] = null;
+                });
+            });
+            return data;
+        } else return data;
+    }
+    /**
      * Get the property values from Azure
      */
     private _getAzurePropertyTable = async () => {
@@ -241,6 +255,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
             });
             filterQuery = tempQuery.join(' or ');
             let azurePropertyData = await this.helper.getAzurePropertyForUsers(selectFields, filterQuery);
+            azurePropertyData = this._updateDataWithAllProperties(azurePropertyData, includedProperties);
             this.setState({ azurePropertyData, manualPropertyData: [], showPropsLoader: false, disablePropsButtons: false });
         } else {
             this.setState({ disablePropsButtons: false, showPropsLoader: false, azurePropertyData: [] });
@@ -402,8 +417,8 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
     /**
      * Component render
      */
-    public render(): React.ReactElement<ISpupsProperySyncProps> {        
-        const { templateLib, displayMode, appTitle, AzFuncUrl, enableBulkUpdate } = this.props;
+    public render(): React.ReactElement<ISpupsProperySyncProps> {
+        const { templateLib, displayMode, appTitle, AzFuncUrl, enableBulkUpdate, enableManualUpdate } = this.props;
         const { propertyMappings, uploadedTemplate, uploadedFileURL, showUploadData, showUploadProgress, uploadedData, isCSV, selectedUsers, manualPropertyData,
             azurePropertyData, disablePropsButtons, showPropsLoader, reloadGetProperties, selectedMenu, updatePropsLoader_Manual, updatePropsLoader_Azure,
             updatePropsLoader_Bulk, clearData, globalMessage, noActivePropertyMappings, listExists, isSiteAdmin, loading, accessDenied } = this.state;
@@ -463,14 +478,14 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                                                     </div>
                                                                                 }
                                                                                 <Pivot defaultSelectedKey="0" selectedKey={selectedMenu} onLinkClick={this._onMenuClick} className={styles.periodmenu}>
-                                                                                    <PivotItem headerText={strings.TabMenu1} itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
+                                                                                    <PivotItem headerText={enableManualUpdate ? strings.TabMenu1 : strings.TabOnlyAzure} itemKey="0" itemIcon="SchoolDataSyncLogo" headerButtonProps={headerButtonProps} ></PivotItem>
                                                                                     {pivotBUItems}
                                                                                     <PivotItem headerText={strings.TabMenu5} itemKey="4" itemIcon="SyncStatus" headerButtonProps={headerButtonProps}></PivotItem>
                                                                                 </Pivot>
                                                                                 <div style={{ float: "right" }}>
                                                                                     <PropertyMappingList mappingProperties={propertyMappings} helper={this.state.helper} siteurl={this.props.context.pageContext.web.serverRelativeUrl}
-                                                                                        disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings} 
-                                                                                        enableBulkUpdate={enableBulkUpdate}/>
+                                                                                        disabled={showUploadProgress || updatePropsLoader_Manual || updatePropsLoader_Azure || updatePropsLoader_Bulk || noActivePropertyMappings}
+                                                                                        enableBulkUpdate={enableBulkUpdate} />
                                                                                 </div>
                                                                             </div>
                                                                             {selectedMenu == "0" &&
@@ -507,8 +522,10 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                                                     }
                                                                                     {selectedUsers && selectedUsers.length > 0 &&
                                                                                         <div style={{ marginTop: "5px" }}>
-                                                                                            <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }}
-                                                                                                disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
+                                                                                            {enableManualUpdate &&
+                                                                                                <PrimaryButton text={strings.BtnManualProps} onClick={this._getManualPropertyTable} style={{ marginRight: '5px' }}
+                                                                                                    disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
+                                                                                            }
                                                                                             <PrimaryButton text={strings.BtnAzureProps} onClick={this._getAzurePropertyTable}
                                                                                                 disabled={disablePropsButtons || updatePropsLoader_Manual || updatePropsLoader_Azure} />
                                                                                             {showPropsLoader && <Spinner className={styles.generateTemplateLoader} label={strings.PropsLoader} ariaLive="assertive" labelPosition="right" />}
@@ -520,7 +537,7 @@ export default class SpupsProperySync extends React.Component<ISpupsProperySyncP
                                                                                     }
                                                                                     {azurePropertyData && azurePropertyData.length > 0 &&
                                                                                         <AzurePropertyView userProperties={azurePropertyData} UpdateSPUserWithAzureProps={this._updateSPWithAzureProperties}
-                                                                                            showProgress={updatePropsLoader_Azure} />
+                                                                                            showProgress={updatePropsLoader_Azure} propertyMappings={propertyMappings} />
                                                                                     }
                                                                                     {clearData &&
                                                                                         <div><MessageContainer MessageScope={MessageScope.Success} Message={strings.JobIntializedSuccess} /></div>
